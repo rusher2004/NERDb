@@ -1,0 +1,7 @@
+name: "nerdb"
+
+include:
+  - path: postgres/docker-compose.yml
+
+volumes:
+  pgdata:
