@@ -1,13 +1,1 @@
-__pycache__/
-.vscode/
-env/
-docker/
-db_scripts/csv/*
-db_scripts/json/*
-db_scripts/logs/*
-db_scripts/secrets.py
-db_scripts/working.cypher
-flask/__pycache__/
-flask/env/
-flask/nerdb/templates/test.html
-flask/nerdb/templates/accordion.html
+.env*
