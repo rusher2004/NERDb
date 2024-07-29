@@ -1,4 +1,4 @@
-package engine
+package everef
 
 import (
 	"context"
@@ -10,9 +10,8 @@ import (
 	"time"
 
 	"github.com/mholt/archiver/v4"
-	"github.com/rusher2004/nerdb/db"
-	"github.com/rusher2004/nerdb/esi"
-	"github.com/rusher2004/nerdb/everef"
+	"github.com/rusher2004/nerdb/killfeed/db"
+	"github.com/rusher2004/nerdb/killfeed/esi"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -20,31 +19,46 @@ type HTTPClient interface {
 	Do(*http.Request) (*http.Response, error)
 }
 
-func handleTarFile(ctx context.Context, f archiver.File) error {
-	if f.IsDir() {
-		log.Printf("skipping directory: %s", f.Name())
-		return nil
-	}
-
-	contents, err := f.Open()
-	if err != nil {
-		return fmt.Errorf("error opening file: %w", err)
-	}
-
-	b, err := io.ReadAll(contents)
-	if err != nil {
-		return fmt.Errorf("error reading file contents: %w", err)
-	}
-
-	var km esi.Killmail
-	if err := json.Unmarshal(b, &km); err != nil {
-		return fmt.Errorf("error unmarshalling killmail: %w", err)
-	}
-
-	return nil
+type Engine struct {
+	db db.Client
+	hc HTTPClient
 }
 
-func ProcessDay(ctx context.Context, hc HTTPClient, day string) error {
+func NewEngine(hc HTTPClient, db db.Client) *Engine {
+	return &Engine{db, hc}
+}
+
+func handleTarFileWithDB(cl db.Client) func(ct context.Context, f archiver.File) error {
+	return func(ctx context.Context, f archiver.File) error {
+		if f.IsDir() {
+			log.Printf("skipping directory: %s", f.Name())
+			return nil
+		}
+
+		contents, err := f.Open()
+		if err != nil {
+			return fmt.Errorf("error opening file: %w", err)
+		}
+
+		b, err := io.ReadAll(contents)
+		if err != nil {
+			return fmt.Errorf("error reading file contents: %w", err)
+		}
+
+		var km esi.Killmail
+		if err := json.Unmarshal(b, &km); err != nil {
+			return fmt.Errorf("error unmarshalling killmail: %w", err)
+		}
+
+		if err := cl.UpsertESIKillmail(ctx, km); err != nil {
+			return fmt.Errorf("error upserting killmail: %w", err)
+		}
+
+		return nil
+	}
+}
+
+func (e *Engine) ProcessDay(ctx context.Context, day string) error {
 	// fetch killmails for the day
 	// parse day into a time.Time object as YYYYMMDD
 	t, err := time.Parse("20060102", day)
@@ -59,7 +73,7 @@ func ProcessDay(ctx context.Context, hc HTTPClient, day string) error {
 		return fmt.Errorf("error creating request: %w", err)
 	}
 
-	res, err := hc.Do(req)
+	res, err := e.hc.Do(req)
 	if err != nil {
 		return fmt.Errorf("error making request: %w", err)
 	}
@@ -76,18 +90,15 @@ func ProcessDay(ctx context.Context, hc HTTPClient, day string) error {
 	}
 	defer bReader.Close()
 
-	// extract the tarball
 	tar := archiver.Tar{}
-	if err := tar.Extract(ctx, bReader, nil, handleTarFile); err != nil {
+	if err := tar.Extract(ctx, bReader, nil, handleTarFileWithDB(e.db)); err != nil {
 		return fmt.Errorf("error extracting tarball: %w", err)
 	}
 
-	// process killmails
-	// store killmails
 	return nil
 }
 
-func RunKillmails(ctx context.Context, hc HTTPClient) error {
+func (e *Engine) RunKillmails(ctx context.Context, hc HTTPClient) error {
 	g := new(errgroup.Group)
 
 	totals := map[string]map[string]int{
@@ -95,7 +106,7 @@ func RunKillmails(ctx context.Context, hc HTTPClient) error {
 		"everef": nil,
 	}
 	g.Go(func() error {
-		t, err := everef.FetchTotals(hc)
+		t, err := FetchTotals(hc)
 		if err != nil {
 			return fmt.Errorf("everef error: %w", err)
 		}
@@ -105,7 +116,7 @@ func RunKillmails(ctx context.Context, hc HTTPClient) error {
 	})
 
 	g.Go(func() error {
-		t, err := db.FetchTotals()
+		t, err := e.db.FetchTotals(ctx)
 		if err != nil {
 			return fmt.Errorf("db error: %w", err)
 		}
@@ -120,14 +131,16 @@ func RunKillmails(ctx context.Context, hc HTTPClient) error {
 
 	for k, v := range totals["everef"] {
 		if _, ok := totals["db"][k]; !ok {
-			// log.Printf("missing key %d in db", k)
-			// dispatch to a queue to process this date
+			log.Printf("missing key %s in db totals", k)
+			if err := e.ProcessDay(ctx, k); err != nil {
+				return fmt.Errorf("error processing day %s: %w", k, err)
+			}
 			continue
 		}
 
 		if v != totals["db"][k] {
 			log.Printf("mismatched value for key %s: %d != %d", k, v, totals["db"][k])
-			if err := ProcessDay(ctx, hc, k); err != nil {
+			if err := e.ProcessDay(ctx, k); err != nil {
 				return fmt.Errorf("error processing day %s: %w", k, err)
 			}
 		}
