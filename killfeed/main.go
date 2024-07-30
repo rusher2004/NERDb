@@ -77,6 +77,9 @@ func main() {
 		if err := g.Wait(); err != nil {
 			log.Fatalf("error running engine: %v", err)
 		}
+
+		log.Println("engine finished")
+		os.Exit(0)
 	}
 
 	signal.Notify(done, syscall.SIGINT, syscall.SIGTERM)

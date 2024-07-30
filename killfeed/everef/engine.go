@@ -24,11 +24,11 @@ type Engine struct {
 	hc HTTPClient
 }
 
-func NewEngine(hc HTTPClient, db db.Client) *Engine {
-	return &Engine{db, hc}
+func NewEngine(hc HTTPClient, cl db.Client) *Engine {
+	return &Engine{cl, hc}
 }
 
-func handleTarFileWithDB(cl db.Client) func(ct context.Context, f archiver.File) error {
+func handleTarFileWithDB(kms *[]esi.Killmail) func(ct context.Context, f archiver.File) error {
 	return func(ctx context.Context, f archiver.File) error {
 		if f.IsDir() {
 			log.Printf("skipping directory: %s", f.Name())
@@ -50,9 +50,7 @@ func handleTarFileWithDB(cl db.Client) func(ct context.Context, f archiver.File)
 			return fmt.Errorf("error unmarshalling killmail: %w", err)
 		}
 
-		if err := cl.UpsertESIKillmail(ctx, km); err != nil {
-			return fmt.Errorf("error upserting killmail: %w", err)
-		}
+		*kms = append(*kms, km)
 
 		return nil
 	}
@@ -90,9 +88,16 @@ func (e *Engine) ProcessDay(ctx context.Context, day string) error {
 	}
 	defer bReader.Close()
 
+	kms := make([]esi.Killmail, 0)
 	tar := archiver.Tar{}
-	if err := tar.Extract(ctx, bReader, nil, handleTarFileWithDB(e.db)); err != nil {
+	if err := tar.Extract(ctx, bReader, nil, handleTarFileWithDB(&kms)); err != nil {
 		return fmt.Errorf("error extracting tarball: %w", err)
+	}
+
+	log.Println("extracted kms count:", len(kms))
+
+	if err := e.db.CopyESIKillmails(ctx, day, kms); err != nil {
+		return fmt.Errorf("error copying killmails: %w", err)
 	}
 
 	return nil
@@ -129,7 +134,16 @@ func (e *Engine) RunKillmails(ctx context.Context, hc HTTPClient) error {
 		return fmt.Errorf("error fetching totals: %w", err)
 	}
 
+	today := time.Now()
+	tomorrow := today.AddDate(0, 0, 1)
 	for k, v := range totals["everef"] {
+		// do not run today or tomorrow's dates. Depending on what time this is running, EveRef may not
+		// yet have the data, and it would throw a 404.
+		if k == today.Format("20060102") || k == tomorrow.Format("20060102") {
+			log.Printf("skipping day %s", k)
+			continue
+		}
+
 		if _, ok := totals["db"][k]; !ok {
 			log.Printf("missing key %s in db totals", k)
 			if err := e.ProcessDay(ctx, k); err != nil {
@@ -143,6 +157,10 @@ func (e *Engine) RunKillmails(ctx context.Context, hc HTTPClient) error {
 			if err := e.ProcessDay(ctx, k); err != nil {
 				return fmt.Errorf("error processing day %s: %w", k, err)
 			}
+		}
+
+		if v == totals["db"][k] {
+			log.Printf("day %s is up to date with %d killmails", k, v)
 		}
 	}
 
