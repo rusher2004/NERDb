@@ -14,6 +14,9 @@ export default function NavBar() {
   ];
 
   const [chosenTheme, setChosenTheme] = useState(() => {
+    const ISSERVER = typeof window === "undefined";
+    if (ISSERVER) return "photon";
+
     const localTheme = localStorage.getItem("theme");
     return localTheme || "photon";
   });
