@@ -24,7 +24,9 @@ func NewListener(hc HTTPClient, db db.Client) *Listener {
 	return &Listener{hc, db}
 }
 
+// Listen uses Zklilboard's RedisQ to listen for new killmails and dispatches them to the database.
 func (l Listener) Listen(ctx context.Context) {
+	// https://github.com/zKillboard/RedisQ
 	req, err := http.NewRequest("GET", "https://redisq.zkillboard.com/listen.php?queueID=nerdb", nil)
 	if err != nil {
 		log.Printf("error creating listen request: %v", err)
@@ -36,12 +38,12 @@ func (l Listener) Listen(ctx context.Context) {
 		case <-ctx.Done():
 			return
 		default:
-			// listen for killmails
 			l.doRequest(ctx, req)
 		}
 	}
 }
 
+// doRequest makes a request to the RedisQ and dispatches the killmail to the database.
 func (l Listener) doRequest(ctx context.Context, req *http.Request) {
 	res, err := l.hc.Do(req)
 	if err != nil {
@@ -76,6 +78,7 @@ func (l Listener) doRequest(ctx context.Context, req *http.Request) {
 	go dispatchKillmail(ctx, l.db, z.Package)
 }
 
+// dispatchKillmail upserts the killmail into the database.
 func dispatchKillmail(ctx context.Context, cl db.Client, z zkill.RedisQPackage) {
 	if err := cl.UpsertZkillKillmail(ctx, z); err != nil {
 		log.Printf("error upserting killmail: %v", err)

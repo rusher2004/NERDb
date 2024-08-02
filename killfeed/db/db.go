@@ -22,7 +22,7 @@ type Client struct {
 	pool *pgxpool.Pool
 }
 
-func NewConn(ctx context.Context, connString string) (*Client, error) {
+func NewClient(ctx context.Context, connString string) (*Client, error) {
 	pool, err := pgxpool.New(ctx, connString)
 	if err != nil {
 		return nil, fmt.Errorf("error creating connection pool: %w", err)
@@ -39,8 +39,8 @@ func (c *Client) Close() {
 	c.pool.Close()
 }
 
+// FetchTotals returns a map of unique days to the number of killmails on that day
 func (c *Client) FetchTotals(ctx context.Context) (map[string]int, error) {
-	// query killmail.esi_killmail to get a count of unique days from time field
 	query := `
 		SELECT to_char(date_trunc('day', time), 'YYYYMMDD') as day, count(*) as total
 		FROM killmail.esi_killmail

@@ -25,6 +25,8 @@ const config: Config = {
     themes: [
       "light",
       "dark",
+      "cupcake",
+      "bumblebee",
       {
         amarr: {
           ...eveThemeDefaults,
@@ -74,6 +76,14 @@ const config: Config = {
           "base-200": "#070D11",
           warning: "#C0B337",
         },
+        photon: {
+          ...eveThemeDefaults,
+          primary: "#58A7BF",
+          secondary: "#373837",
+          accent: "#58A7BF",
+          "base-200": "#060A0C",
+          warning: "#F39058",
+        },
       },
     ],
   },
@@ -86,4 +96,5 @@ export default config;
 // gallente #58BF9A,#6DB09E,#0A090F,#F39058
 // minmatar #D05C3B,#9D452D,#030909,#F39058
 // ore #DDB825,#55999C,#030805,#DE8B78
+// photon #58A7BF,#58A7BF,#060A0C,#F39058
 // sisters #E55252,#A1DDE0,#070D11,#C0B337
