@@ -1,82 +1,38 @@
 package esi
 
 import (
-	"database/sql"
-	"encoding/json"
 	"slices"
 	"time"
+
+	"github.com/rusher2004/nerdb/null"
 )
-
-type JSONNullInt32 struct {
-	sql.NullInt32
-}
-
-func (i JSONNullInt32) MarshalJSON() ([]byte, error) {
-	if i.Valid {
-		return json.Marshal(i.Int32)
-	}
-
-	return []byte("null"), nil
-}
-
-func (i *JSONNullInt32) UnmarshalJSON(data []byte) error {
-	if string(data) == "null" {
-		i.Int32, i.Valid = 0, false
-		return nil
-	}
-
-	i.Valid = true
-	return json.Unmarshal(data, &i.Int32)
-}
-
-type JSONNullInt64 struct {
-	sql.NullInt64
-}
-
-func (i JSONNullInt64) MarshalJSON() ([]byte, error) {
-	if i.Valid {
-		return json.Marshal(i.Int64)
-	}
-
-	return []byte("null"), nil
-}
-
-func (i *JSONNullInt64) UnmarshalJSON(data []byte) error {
-	if string(data) == "null" {
-		i.Int64, i.Valid = 0, false
-		return nil
-	}
-
-	i.Valid = true
-	return json.Unmarshal(data, &i.Int64)
-}
 
 type Killmail struct {
 	Attackers     []KillmailAttacker `json:"attackers"`
 	KillmailID    int32              `json:"killmail_id"`
 	KillmailTime  time.Time          `json:"killmail_time"`
-	MoonID        JSONNullInt32      `json:"moon_id"`
+	MoonID        null.JSONNullInt32 `json:"moon_id"`
 	SolarSystemID int32              `json:"solar_system_id"`
 	Victim        KillmailVictim     `json:"victim"`
-	WarID         JSONNullInt32      `json:"war_id"`
+	WarID         null.JSONNullInt32 `json:"war_id"`
 }
 
 type KillMailParticipant struct {
-	AllianceID    JSONNullInt32 `json:"alliance_id"`
-	CharacterID   JSONNullInt32 `json:"character_id"`
-	CorporationID JSONNullInt32 `json:"corporation_id"`
-	FactionID     JSONNullInt32 `json:"faction_id"`
-	ShipTypeID    int32         `json:"ship_type_id"`
+	AllianceID    null.JSONNullInt32 `json:"alliance_id"`
+	CharacterID   null.JSONNullInt32 `json:"character_id"`
+	CorporationID null.JSONNullInt32 `json:"corporation_id"`
+	FactionID     null.JSONNullInt32 `json:"faction_id"`
+	ShipTypeID    int32              `json:"ship_type_id"`
 }
 
 type KillmailAttacker struct {
 	KillMailParticipant
 
-	DamageDone     int32         `json:"damage_done"`
-	FinalBlow      bool          `json:"final_blow"`
-	SecurityStatus float32       `json:"security_status"`
-	ShipTypeID     JSONNullInt32 `json:"ship_type_id"`
-	WeaponTypeID   JSONNullInt32 `json:"weapon_type_id"`
+	DamageDone     int32              `json:"damage_done"`
+	FinalBlow      bool               `json:"final_blow"`
+	SecurityStatus float32            `json:"security_status"`
+	ShipTypeID     null.JSONNullInt32 `json:"ship_type_id"`
+	WeaponTypeID   null.JSONNullInt32 `json:"weapon_type_id"`
 }
 
 type KillmailVictim struct {
@@ -91,17 +47,17 @@ type KillmailVictimItem struct {
 	Flag              int32                 `json:"flag"`
 	ItemTypeID        int32                 `json:"item_type_id"`
 	Items             *[]KillmailVictimItem `json:"items,omitempty"`
-	QuantityDestroyed JSONNullInt64         `json:"quantity_destroyed,omitempty"`
-	QuantityDropped   JSONNullInt64         `json:"quantity_dropped,omitempty"`
+	QuantityDestroyed null.JSONNullInt64    `json:"quantity_destroyed,omitempty"`
+	QuantityDropped   null.JSONNullInt64    `json:"quantity_dropped,omitempty"`
 	Singleton         int32                 `json:"singleton"`
 }
 
 type KillmailVictimItemDetail struct {
-	Flag              int32         `json:"flag"`
-	ItemTypeID        int32         `json:"item_type_id"`
-	QuantityDestroyed JSONNullInt64 `json:"quantity_destroyed,omitempty"`
-	QuantityDropped   JSONNullInt64 `json:"quantity_dropped,omitempty"`
-	Singleton         int32         `json:"singleton"`
+	Flag              int32              `json:"flag"`
+	ItemTypeID        int32              `json:"item_type_id"`
+	QuantityDestroyed null.JSONNullInt64 `json:"quantity_destroyed,omitempty"`
+	QuantityDropped   null.JSONNullInt64 `json:"quantity_dropped,omitempty"`
+	Singleton         int32              `json:"singleton"`
 }
 
 type KillmailVictimPosition struct {
@@ -110,6 +66,8 @@ type KillmailVictimPosition struct {
 	Z float64 `json:"z"`
 }
 
+// UniqueParticipants returns a list of unique participants in the killmail, combined from
+// attackers and victim.
 func (k Killmail) UniqueParticipants() []KillMailParticipant {
 	var charIDs []int32
 	var participants []KillMailParticipant

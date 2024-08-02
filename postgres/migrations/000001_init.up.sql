@@ -14,7 +14,7 @@ $$ LANGUAGE PLPGSQL;
  */
 CREATE SCHEMA IF NOT EXISTS player;
 
-CREATE TABLE player.character (
+CREATE TABLE IF NOT EXISTS player.character (
   esi_character_id integer NOT NULL PRIMARY KEY,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -23,7 +23,7 @@ CREATE TABLE player.character (
 CREATE OR REPLACE TRIGGER player_character_updated_trigger BEFORE
 UPDATE ON player.character FOR EACH ROW EXECUTE FUNCTION updated_timestamp();
 
-CREATE TABLE player.corporation (
+CREATE TABLE IF NOT EXISTS player.corporation (
   esi_corporation_id integer NOT NULL PRIMARY KEY,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -32,7 +32,7 @@ CREATE TABLE player.corporation (
 CREATE OR REPLACE TRIGGER player_corporation_updated_trigger BEFORE
 UPDATE ON player.corporation FOR EACH ROW EXECUTE FUNCTION updated_timestamp();
 
-CREATE TABLE player.alliance (
+CREATE TABLE IF NOT EXISTS player.alliance (
   esi_alliance_id integer NOT NULL PRIMARY KEY,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -49,9 +49,14 @@ CREATE SCHEMA IF NOT EXISTS killmail;
 /*
  types
  */
-CREATE TYPE killmail.victim_item_parent_type AS enum ('victim', 'item');
+DO $$ BEGIN CREATE TYPE killmail.victim_item_parent_type AS enum ('victim', 'item');
 
-CREATE TABLE killmail.esi_killmail (
+EXCEPTION
+WHEN duplicate_object THEN NULL;
+
+END $$;
+
+CREATE TABLE IF NOT EXISTS killmail.esi_killmail (
   esi_killmail_id integer NOT NULL CONSTRAINT esi_killmail_pk PRIMARY KEY,
   time timestamp NOT NULL,
   moon_id integer,
@@ -64,7 +69,7 @@ CREATE TABLE killmail.esi_killmail (
 CREATE OR REPLACE TRIGGER killmail_esi_killmail_updated_trigger BEFORE
 UPDATE ON killmail.esi_killmail FOR EACH ROW EXECUTE FUNCTION updated_timestamp();
 
-CREATE TABLE killmail.zkill_info (
+CREATE TABLE IF NOT EXISTS killmail.zkill_info (
   zkill_info_id serial PRIMARY KEY,
   esi_killmail_id integer NOT NULL CONSTRAINT zkill_info_pk UNIQUE REFERENCES killmail.esi_killmail(esi_killmail_id),
   awox boolean NOT NULL,
@@ -84,7 +89,7 @@ CREATE TABLE killmail.zkill_info (
 CREATE OR REPLACE TRIGGER killmail_zkill_info_updated_trigger BEFORE
 UPDATE ON killmail.zkill_info FOR EACH ROW EXECUTE FUNCTION updated_timestamp();
 
-CREATE TABLE killmail.victim (
+CREATE TABLE IF NOT EXISTS killmail.victim (
   esi_character_id integer REFERENCES player.character(esi_character_id),
   esi_killmail_id integer NOT NULL REFERENCES killmail.esi_killmail(esi_killmail_id),
   damage_taken integer NOT NULL,
@@ -102,7 +107,7 @@ CREATE TABLE killmail.victim (
 CREATE OR REPLACE TRIGGER killmail_victim_updated_trigger BEFORE
 UPDATE ON killmail.victim FOR EACH ROW EXECUTE FUNCTION updated_timestamp();
 
-CREATE TABLE killmail.attacker (
+CREATE TABLE IF NOT EXISTS killmail.attacker (
   esi_character_id integer REFERENCES player.character(esi_character_id),
   esi_killmail_id integer NOT NULL REFERENCES killmail.esi_killmail(esi_killmail_id),
   damage_done integer NOT NULL,
@@ -120,7 +125,7 @@ CREATE TABLE killmail.attacker (
 CREATE OR REPLACE TRIGGER killmail_attacker_updated_trigger BEFORE
 UPDATE ON killmail.attacker FOR EACH ROW EXECUTE FUNCTION updated_timestamp();
 
-CREATE TABLE killmail.victim_item (
+CREATE TABLE IF NOT EXISTS killmail.victim_item (
   victim_item_id serial PRIMARY KEY,
   parent_id integer NOT NULL,
   parent_type killmail.victim_item_parent_type NOT NULL,
@@ -141,7 +146,7 @@ UPDATE ON killmail.victim_item FOR EACH ROW EXECUTE FUNCTION updated_timestamp()
  */
 CREATE SCHEMA IF NOT EXISTS universe;
 
-CREATE TABLE universe.faction (
+CREATE TABLE IF NOT EXISTS universe.faction (
   esi_faction_id integer PRIMARY KEY,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
