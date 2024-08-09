@@ -1,39 +1,44 @@
 ALTER TABLE player.alliance
-ADD COLUMN creator_corporation_id INTEGER,
-  ADD COLUMN creator_id INTEGER,
-  ADD COLUMN date_founded TIMESTAMP,
-  ADD COLUMN executor_corporation_id INTEGER,
-  ADD COLUMN faction_id INTEGER,
-  ADD COLUMN name TEXT,
-  ADD COLUMN ticker TEXT;
+ADD COLUMN IF NOT EXISTS creator_corporation_id INTEGER,
+  ADD COLUMN IF NOT EXISTS creator_id INTEGER,
+  ADD COLUMN IF NOT EXISTS date_founded TIMESTAMP,
+  ADD COLUMN IF NOT EXISTS executor_corporation_id INTEGER,
+  ADD COLUMN IF NOT EXISTS faction_id INTEGER,
+  ADD COLUMN IF NOT EXISTS name TEXT,
+  ADD COLUMN IF NOT EXISTS ticker TEXT;
 
-CREATE TYPE player.gender AS ENUM ('female', 'male');
+DO $$ BEGIN CREATE TYPE player.gender AS ENUM ('female', 'male');
+
+EXCEPTION
+WHEN duplicate_object THEN NULL;
+
+END $$;
 
 ALTER TABLE player.character
-ADD COLUMN alliance_id INTEGER,
-  ADD COLUMN birthday TIMESTAMP,
-  ADD COLUMN bloodline_id INTEGER,
-  ADD COLUMN corporation_id INTEGER,
-  ADD COLUMN description TEXT,
-  ADD COLUMN faction_id INTEGER,
-  ADD COLUMN gender player.gender,
-  ADD COLUMN name TEXT,
-  ADD COLUMN race_id INTEGER,
-  ADD COLUMN security_status NUMERIC(17, 2),
-  ADD COLUMN title TEXT;
+ADD COLUMN IF NOT EXISTS alliance_id INTEGER,
+  ADD COLUMN IF NOT EXISTS birthday TIMESTAMP,
+  ADD COLUMN IF NOT EXISTS bloodline_id INTEGER,
+  ADD COLUMN IF NOT EXISTS corporation_id INTEGER,
+  ADD COLUMN IF NOT EXISTS description TEXT,
+  ADD COLUMN IF NOT EXISTS faction_id INTEGER,
+  ADD COLUMN IF NOT EXISTS gender player.gender,
+  ADD COLUMN IF NOT EXISTS name TEXT,
+  ADD COLUMN IF NOT EXISTS race_id INTEGER,
+  ADD COLUMN IF NOT EXISTS security_status NUMERIC(17, 2),
+  ADD COLUMN IF NOT EXISTS title TEXT;
 
 ALTER TABLE player.corporation
-ADD COLUMN alliance_id INTEGER,
-  ADD COLUMN ceo_id INTEGER,
-  ADD COLUMN creator_id INTEGER,
-  ADD COLUMN date_founded TIMESTAMP,
-  ADD COLUMN description TEXT,
-  ADD COLUMN faction_id INTEGER,
-  ADD COLUMN home_station_id INTEGER,
-  ADD COLUMN member_count INTEGER,
-  ADD COLUMN name TEXT,
-  ADD COLUMN shares INTEGER,
-  ADD COLUMN tax_rate NUMERIC(17, 2),
-  ADD COLUMN ticker TEXT,
-  ADD COLUMN url TEXT,
-  ADD COLUMN war_eligible BOOLEAN;
+ADD COLUMN IF NOT EXISTS alliance_id INTEGER,
+  ADD COLUMN IF NOT EXISTS ceo_id INTEGER,
+  ADD COLUMN IF NOT EXISTS creator_id INTEGER,
+  ADD COLUMN IF NOT EXISTS date_founded TIMESTAMP,
+  ADD COLUMN IF NOT EXISTS description TEXT,
+  ADD COLUMN IF NOT EXISTS faction_id INTEGER,
+  ADD COLUMN IF NOT EXISTS home_station_id INTEGER,
+  ADD COLUMN IF NOT EXISTS member_count INTEGER,
+  ADD COLUMN IF NOT EXISTS name TEXT,
+  ADD COLUMN IF NOT EXISTS shares INTEGER,
+  ADD COLUMN IF NOT EXISTS tax_rate NUMERIC(17, 2),
+  ADD COLUMN IF NOT EXISTS ticker TEXT,
+  ADD COLUMN IF NOT EXISTS url TEXT,
+  ADD COLUMN IF NOT EXISTS war_eligible BOOLEAN;

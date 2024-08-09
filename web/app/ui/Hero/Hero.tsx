@@ -1,3 +1,5 @@
+import Search from "@/app/ui/Search/Search";
+
 export default function Hero() {
   return (
     <div className="hero bg-base-200 min-h-screen">
@@ -9,13 +11,7 @@ export default function Hero() {
             excepturi exercitationem quasi. In deleniti eaque aut repudiandae et
             a id nisi.
           </p>
-          <div className="form-control">
-            <input
-              type="text"
-              placeholder="Search"
-              className="input input-bordered w-24 md:w-auto"
-            />
-          </div>
+          <Search />
         </div>
       </div>
     </div>
