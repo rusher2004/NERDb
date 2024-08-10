@@ -20,6 +20,8 @@ export async function search(
 ): Promise<{ rows?: SearchResult[]; error?: Error }> {
   console.log("searching for", query, "at", new Date().toISOString());
 
+  console.log("pg env", process.env.POSTGRES_URL);
+
   if (!query) {
     return { rows: [] };
   }
@@ -39,6 +41,8 @@ export async function search(
     ORDER BY rank desc
     LIMIT 10;
   `;
+
+    console.log("search results", JSON.parse(JSON.stringify(rows)));
 
     if (!rows.length) {
       return { rows: [] };
