@@ -18,13 +18,13 @@ export interface SearchResult {
 export async function search(
   query: string
 ): Promise<{ rows?: SearchResult[]; error?: Error }> {
-  console.log("searching for", query, "at", new Date().toISOString());
-
-  console.log("pg env", process.env.POSTGRES_URL);
-
   if (!query) {
     return { rows: [] };
   }
+
+  const now = new Date().toISOString();
+  console.log("searching for", query, "at", now);
+  console.time(query + "-" + now);
 
   try {
     const rows = await db<SearchResult[]>`
@@ -42,7 +42,8 @@ export async function search(
     LIMIT 10;
   `;
 
-    console.log("search results", JSON.parse(JSON.stringify(rows)));
+    console.timeEnd(query + "-" + now);
+    console.log(`query ${query}: ${rows.length} results`);
 
     if (!rows.length) {
       return { rows: [] };
