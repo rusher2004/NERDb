@@ -3,7 +3,8 @@
 import postgres from "postgres";
 
 const db = postgres(process.env.POSTGRES_URL || "", {
-  ssl: process.env.NODE_ENV === "production",
+  // ssl: process.env.NODE_ENV === "production",
+  ssl: false,
 });
 
 export interface SearchResult {
