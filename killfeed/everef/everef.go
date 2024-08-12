@@ -55,6 +55,7 @@ type Character struct {
 
 type Corporation struct {
 	ID              OID          `json:"_id"`
+	AllianceID      int          `json:"alliance_id"`
 	CorporationID   int          `json:"corporation_id"`
 	CeoID           int          `json:"ceo_id"`
 	CreatorID       int          `json:"creator_id"`
@@ -66,9 +67,10 @@ type Corporation struct {
 	MemberCount     int          `json:"member_count"`
 	Name            string       `json:"name"`
 	Shares          int          `json:"shares"`
-	TaxRate         int          `json:"tax_rate"`
+	TaxRate         float32      `json:"tax_rate"`
 	Ticker          string       `json:"ticker"`
 	URL             string       `json:"url"`
+	WarEligible     bool         `json:"war_eligible"`
 	Losses          int          `json:"losses"`
 	AllianceName    string       `json:"alliance_name"`
 	CeoName         string       `json:"ceo_name"`
@@ -135,6 +137,64 @@ func (c Character) toDBCharacter() db.Character {
 		RaceID:         int32(c.RaceID),
 		SecurityStatus: float32(c.SecurityStatus),
 		Title:          outTitle,
+	}
+}
+
+func (c Corporation) toDBCorporation() db.Corporation {
+	var (
+		outAllID   null.JSONNullInt32
+		outCEO     null.JSONNullInt32
+		outCreator null.JSONNullInt32
+		outFac     null.JSONNullInt32
+		outHome    null.JSONNullInt32
+		outURL     null.JSONNullString
+	)
+
+	if c.AllianceID != 0 {
+		outAllID.Valid = true
+		outAllID.Int32 = int32(c.AllianceID)
+	}
+
+	if c.CeoID != 0 {
+		outCEO.Valid = true
+		outCEO.Int32 = int32(c.CeoID)
+	}
+
+	if c.CreatorID != 0 {
+		outCreator.Valid = true
+		outCreator.Int32 = int32(c.CreatorID)
+	}
+
+	if c.FactionID != 0 {
+		outFac.Valid = true
+		outFac.Int32 = int32(c.FactionID)
+	}
+
+	if c.HomeStationID != 0 {
+		outHome.Valid = true
+		outHome.Int32 = int32(c.HomeStationID)
+	}
+
+	if c.URL != "" {
+		outURL.Valid = true
+		outURL.String = c.URL
+	}
+
+	return db.Corporation{
+		AllianceID:    outAllID,
+		CEOID:         outCEO,
+		CorporationID: int32(c.CorporationID),
+		CreatorID:     outCreator,
+		Description:   c.Description,
+		FactionID:     outFac,
+		HomeStationID: outHome,
+		MemberCount:   int32(c.MemberCount),
+		Name:          c.Name,
+		Shares:        int64(c.Shares),
+		TaxRate:       float32(c.TaxRate),
+		Ticker:        c.Ticker,
+		URL:           outURL,
+		WarEligible:   c.WarEligible,
 	}
 }
 

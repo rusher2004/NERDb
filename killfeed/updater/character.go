@@ -59,7 +59,7 @@ func esiCharToDBChar(id int32, in esi.GetCharactersCharacterIdOk) db.Character {
 
 // updateCharacter fetches character info from the ESI API and then updates the corresponding row in the database.
 func (u *Updater) updateCharacter(ctx context.Context, charID int32) error {
-	ok, res, err := (*u.esi).GetCharactersCharacterId(ctx, int32(charID), nil)
+	ok, res, err := (*u.esiChar).GetCharactersCharacterId(ctx, int32(charID), nil)
 	if err != nil {
 		var esiErr esi.GenericSwaggerError
 		if errors.As(err, &esiErr) {
@@ -79,10 +79,10 @@ func (u *Updater) updateCharacter(ctx context.Context, charID int32) error {
 	}
 	defer res.Body.Close()
 
-	log.Printf("updating %v\n", ok.Name)
+	log.Println("updating", ok.Name)
 
 	if err := checkLimits(res); err != nil {
-		return err
+		return fmt.Errorf("esi limit met: %w", err)
 	}
 
 	dbChar := esiCharToDBChar(charID, ok)

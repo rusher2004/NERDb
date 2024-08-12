@@ -31,7 +31,7 @@ func main() {
 	updaterSrc := updateCmd.String("src", "", "source")
 	updateFileDir := updateCmd.String("dir", "", "dir source")
 	// updateDate := updateCmd.String("date", time.Now().Format("2006-02-01"), "date source")
-	// updateType := updateCmd.String("type", "", "character, corporation, or alliance")
+	updateType := updateCmd.String("type", "", "character, corporation, or alliance")
 	updateEnable := false
 
 	if len(os.Args) < 2 {
@@ -100,10 +100,9 @@ func main() {
 			switch *updaterSrc {
 			case "esi":
 				ec := goesi.NewAPIClient(&cl, "nerdb - rusher2004@gmail.com - Fungus Amongus (in game)")
-				u := updater.NewUpdater(*pool, ec.ESI.CharacterApi)
-
+				u := updater.NewUpdater(*pool, ec.ESI.CharacterApi, ec.ESI.CorporationApi)
 				for {
-					if err := u.UpdateCharacters(ctx, 1000); err != nil {
+					if err := u.Update(ctx, *updateType, 1000); err != nil {
 						if errors.Is(err, updater.ErrNoUnnamedCharacters{}) {
 							log.Println("no more unnamed characters")
 							return nil
@@ -117,7 +116,7 @@ func main() {
 				}
 
 			case "everef":
-				return eng.RunPlayerUpdater(ctx, *updateFileDir)
+				return eng.Run(ctx, *updateFileDir, *updateType)
 
 			default:
 				return errors.New("unknown source")

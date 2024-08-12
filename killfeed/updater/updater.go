@@ -16,8 +16,12 @@ type DBClient interface {
 	Query(ctx context.Context, sql string, args ...interface{}) (pgx.Rows, error)
 }
 
-type ESIClient interface {
+type ESICharacterClient interface {
 	GetCharactersCharacterId(ctx context.Context, characterId int32, localVarOptionals *esi.GetCharactersCharacterIdOpts) (esi.GetCharactersCharacterIdOk, *http.Response, error)
+}
+
+type ESICorporationClient interface {
+	GetCorporationsCorporationId(ctx context.Context, corporationId int32, localVarOptionals *esi.GetCorporationsCorporationIdOpts) (esi.GetCorporationsCorporationIdOk, *http.Response, error)
 }
 
 type ESILimitError struct {
@@ -35,15 +39,34 @@ func (e ErrNoUnnamedCharacters) Error() string {
 	return "no unnamed characters"
 }
 
-type Updater struct {
-	db  db.Client
-	esi *ESIClient
+type ErrNoUnnamedCorporations struct{}
+
+func (e ErrNoUnnamedCorporations) Error() string {
+	return "no unnamed corporations"
 }
 
-func NewUpdater(db db.Client, ec ESIClient) *Updater {
+type Updater struct {
+	db      db.Client
+	esiChar *ESICharacterClient
+	esiCorp *ESICorporationClient
+}
+
+func NewUpdater(db db.Client, char ESICharacterClient, corp ESICorporationClient) *Updater {
 	return &Updater{
-		db:  db,
-		esi: &ec,
+		db:      db,
+		esiChar: &char,
+		esiCorp: &corp,
+	}
+}
+
+func (u *Updater) Update(ctx context.Context, kind string, limit int) error {
+	switch kind {
+	case "character":
+		return u.UpdateCharacters(ctx, limit)
+	case "corporation":
+		return u.UpdateCorporations(ctx, limit)
+	default:
+		return fmt.Errorf("unknown type: %s", kind)
 	}
 }
 

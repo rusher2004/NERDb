@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/jackc/pgx/v5"
 	"github.com/rusher2004/nerdb/null"
 )
 
@@ -30,6 +31,63 @@ type Character struct {
 	SecurityStatus float32             `db:"security_status"`
 	Title          null.JSONNullString `db:"title"`
 	UpdatedAt      time.Time           `db:"updated_at"`
+}
+
+// CopyCharacters uses Postgres CopyFrom to copy characters into the database, copying into a temp
+// table, then inserting into the persistent table.
+func (c *Client) CopyCharacters(ctx context.Context, characters []Character) error {
+	cols := []string{
+		"esi_character_id",
+		"esi_alliance_id",
+		"birthday",
+		"bloodline_id",
+		"esi_corporation_id",
+		"description",
+		"faction_id",
+		"gender",
+		"name",
+		"race_id",
+		"security_status",
+	}
+	var anyChars [][]any
+
+	setClauses := []string{
+		"esi_character_id",
+		"esi_alliance_id = EXCLUDED.esi_alliance_id",
+		"birthday = EXCLUDED.birthday",
+		"bloodline_id = EXCLUDED.bloodline_id",
+		"esi_corporation_id = EXCLUDED.esi_corporation_id",
+		"description = EXCLUDED.description",
+		"faction_id = EXCLUDED.faction_id",
+		"gender = EXCLUDED.gender",
+		"name = EXCLUDED.name",
+		"race_id = EXCLUDED.race_id",
+		"security_status = EXCLUDED.security_status",
+	}
+
+	for _, c := range characters {
+		anyChars = append(anyChars, []any{
+			c.CharacterID,
+			c.AllianceID,
+			c.Birthday,
+			c.BloodlineID,
+			c.CorporationID,
+			c.Description,
+			c.FactionID,
+			c.Gender,
+			c.Name,
+			c.RaceID,
+			c.SecurityStatus,
+		})
+	}
+
+	if err := pgx.BeginFunc(ctx, c.pool, func(tx pgx.Tx) error {
+		return copyAny(ctx, tx, "player", "character", "temp", cols, anyChars, setClauses...)
+	}); err != nil {
+		return fmt.Errorf("transaction error: %w", err)
+	}
+
+	return nil
 }
 
 // GetUnnamedCharacterIDs returns a list of character IDs where name and esi_deleted are null

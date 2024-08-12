@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"slices"
 	"time"
 
 	"github.com/mholt/archiver/v4"
@@ -126,9 +127,9 @@ func (e *Engine) ProcessDayKillmails(ctx context.Context, day string) error {
 	return nil
 }
 
-// RunPlayerUpdater reads a file of character data and inserts it into the database. A file named
+// RunCharacterUpdater reads a file of character data and inserts it into the database. A file named
 // characters.json is expected to be in the directory provided.
-func (e *Engine) RunPlayerUpdater(ctx context.Context, dir string) error {
+func (e *Engine) RunCharacterUpdater(ctx context.Context, dir string) error {
 	// TODO: just use the full file path. Why be cute about looking for it in the directory?
 	f, err := openFile(filepath.Join(dir, "characters.json"))
 	if err != nil {
@@ -156,6 +157,36 @@ func (e *Engine) RunPlayerUpdater(ctx context.Context, dir string) error {
 
 	if err := e.db.CopyCharacters(ctx, chars); err != nil {
 		return fmt.Errorf("error copying characters: %w", err)
+	}
+
+	return nil
+}
+
+func (e *Engine) RunCorporationUpdater(ctx context.Context, dir string) error {
+	f, err := openFile(filepath.Join(dir, "corporations.json"))
+	if err != nil {
+		return fmt.Errorf("error opening corporations file: %w", err)
+	}
+	defer f.Close()
+
+	scanner := bufio.NewScanner(f)
+	maxCapacity := 512 * 1024
+	buf := make([]byte, maxCapacity)
+	scanner.Buffer(buf, maxCapacity)
+
+	var corps []db.Corporation
+	for scanner.Scan() {
+		var c Corporation
+		if err := json.Unmarshal(scanner.Bytes(), &c); err != nil {
+			return fmt.Errorf("error unmarshalling corporation: %w", err)
+		}
+
+		corps = append(corps, c.toDBCorporation())
+	}
+	log.Printf("read %d corporations", len(corps))
+
+	if err := e.db.CopyCorporations(ctx, corps); err != nil {
+		return fmt.Errorf("error copying corporations: %w", err)
 	}
 
 	return nil
@@ -223,6 +254,40 @@ func (e *Engine) RunKillmails(ctx context.Context, hc HTTPClient) error {
 		if v == totals["db"][k] {
 			log.Printf("day %s is up to date with %d killmails", k, v)
 		}
+	}
+
+	return nil
+}
+
+func (e *Engine) Run(ctx context.Context, dir string, kind ...string) error {
+	if !slices.Contains(kind, "character") &&
+		!slices.Contains(kind, "corporation") &&
+		!slices.Contains(kind, "killmail") {
+		return fmt.Errorf("unknown type(s): %s", kind)
+	}
+
+	g := new(errgroup.Group)
+
+	if slices.Contains(kind, "character") {
+		g.Go(func() error {
+			return e.RunCharacterUpdater(ctx, dir)
+		})
+	}
+
+	if slices.Contains(kind, "corporation") {
+		g.Go(func() error {
+			return e.RunCorporationUpdater(ctx, dir)
+		})
+	}
+
+	if slices.Contains(kind, "killmail") {
+		g.Go(func() error {
+			return e.RunKillmails(ctx, e.hc)
+		})
+	}
+
+	if err := g.Wait(); err != nil {
+		return fmt.Errorf("error running engine: %w", err)
 	}
 
 	return nil

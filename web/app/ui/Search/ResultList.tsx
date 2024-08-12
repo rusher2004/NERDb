@@ -7,12 +7,14 @@ export interface Props {
 
 export default function ResultList({ searchResults }: Props) {
   return (
-    <ul className="menu flex-nowrap p-4 shadow-lg bg-base-100 rounded-box h-96 overflow-y-auto">
-      {searchResults.map((result) => (
-        <li key={result.esi_character_id}>
-          <ResultListItem {...result} />
-        </li>
-      ))}
-    </ul>
+    <div className="collapse-content p-0">
+      <ul className="menu flex-nowrap shadow-lg bg-base-100 rounded-box max-h-96 overflow-y-auto">
+        {searchResults.map((result) => (
+          <li key={result.esi_character_id}>
+            <ResultListItem {...result} />
+          </li>
+        ))}
+      </ul>
+    </div>
   );
 }
