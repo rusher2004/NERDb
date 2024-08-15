@@ -16,6 +16,11 @@ type DBClient interface {
 	Query(ctx context.Context, sql string, args ...interface{}) (pgx.Rows, error)
 }
 
+type ESIAllianceClient interface {
+	GetAlliances(ctx context.Context, localVarOptionals *esi.GetAlliancesOpts) ([]int32, *http.Response, error)
+	GetAlliancesAllianceId(ctx context.Context, allianceId int32, localVarOptionals *esi.GetAlliancesAllianceIdOpts) (esi.GetAlliancesAllianceIdOk, *http.Response, error)
+}
+
 type ESICharacterClient interface {
 	GetCharactersCharacterId(ctx context.Context, characterId int32, localVarOptionals *esi.GetCharactersCharacterIdOpts) (esi.GetCharactersCharacterIdOk, *http.Response, error)
 }
@@ -33,6 +38,12 @@ func (e ESILimitError) Error() string {
 	return fmt.Sprintf("ESI error limit reached: remain %d, reset %d", e.Remain, e.Reset)
 }
 
+type ErrNoUnnamedAlliances struct{}
+
+func (e ErrNoUnnamedAlliances) Error() string {
+	return "no unnamed alliances"
+}
+
 type ErrNoUnnamedCharacters struct{}
 
 func (e ErrNoUnnamedCharacters) Error() string {
@@ -47,13 +58,15 @@ func (e ErrNoUnnamedCorporations) Error() string {
 
 type Updater struct {
 	db      db.Client
+	esiAlly *ESIAllianceClient
 	esiChar *ESICharacterClient
 	esiCorp *ESICorporationClient
 }
 
-func NewUpdater(db db.Client, char ESICharacterClient, corp ESICorporationClient) *Updater {
+func NewUpdater(db db.Client, ally ESIAllianceClient, char ESICharacterClient, corp ESICorporationClient) *Updater {
 	return &Updater{
 		db:      db,
+		esiAlly: &ally,
 		esiChar: &char,
 		esiCorp: &corp,
 	}
@@ -61,6 +74,8 @@ func NewUpdater(db db.Client, char ESICharacterClient, corp ESICorporationClient
 
 func (u *Updater) Update(ctx context.Context, kind string, limit int) error {
 	switch kind {
+	case "alliance":
+		return u.UpdateAlliances(ctx, limit)
 	case "character":
 		return u.UpdateCharacters(ctx, limit)
 	case "corporation":

@@ -100,11 +100,13 @@ func main() {
 			switch *updaterSrc {
 			case "esi":
 				ec := goesi.NewAPIClient(&cl, "nerdb - rusher2004@gmail.com - Fungus Amongus (in game)")
-				u := updater.NewUpdater(*pool, ec.ESI.CharacterApi, ec.ESI.CorporationApi)
+				u := updater.NewUpdater(*pool, ec.ESI.AllianceApi, ec.ESI.CharacterApi, ec.ESI.CorporationApi)
 				for {
 					if err := u.Update(ctx, *updateType, 1000); err != nil {
-						if errors.Is(err, updater.ErrNoUnnamedCharacters{}) {
-							log.Println("no more unnamed characters")
+						if errors.Is(err, updater.ErrNoUnnamedCharacters{}) ||
+							errors.Is(err, updater.ErrNoUnnamedCorporations{}) ||
+							errors.Is(err, updater.ErrNoUnnamedAlliances{}) {
+							log.Printf("no more unnamed %ss\n", *updateType)
 							return nil
 						}
 

@@ -142,7 +142,7 @@ func (c *Client) UpdateCorporation(ctx context.Context, corp Corporation) error 
 		WHERE esi_corporation_id = $1;
 	`
 
-	_, err := c.pool.Exec(ctx, query,
+	if _, err := c.pool.Exec(ctx, query,
 		corp.CorporationID,
 		corp.AllianceID,
 		corp.CEOID,
@@ -158,8 +158,7 @@ func (c *Client) UpdateCorporation(ctx context.Context, corp Corporation) error 
 		corp.Ticker,
 		corp.URL,
 		corp.WarEligible,
-	)
-	if err != nil {
+	); err != nil {
 		return fmt.Errorf("exec error: %w", err)
 	}
 

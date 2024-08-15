@@ -45,6 +45,7 @@ func toAnySlice[T any](i []T) []any {
 // setClauses can be provided. If used, seClauses[0] must be the column(s) to conflict on, and the
 // rest of the setClauses must be the columns to update, formated as `key = value`.
 func copyAny(ctx context.Context, tx pgx.Tx, schema, table, date string, cols []string, rows [][]any, setClauses ...string) error {
+	log.Printf("copying %d %s(s)\n", len(rows), table)
 	if len(rows) == 0 {
 		return nil
 	}
