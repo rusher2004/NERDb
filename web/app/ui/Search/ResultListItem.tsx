@@ -3,12 +3,13 @@ import AllianceAvatar from "@/app/ui/Alliance/Avatar";
 import CharAvatar from "@/app/ui/Character/Avatar";
 import CorpAvatar from "@/app/ui/Corporation/Avatar";
 import { clsx } from "clsx";
+import Link from "next/link";
 
 export interface Props {
   id: number;
   name: string;
-  esi_corporation_id?: number;
-  esi_alliance_id?: number;
+  esiCorporationId?: number;
+  esiAllianceId?: number;
   type: "character" | "corporation" | "alliance";
 }
 
@@ -39,7 +40,11 @@ function secStatusColor(secStatus: number) {
 export default function ResultListItem(props: Props) {
   console.log("ResultListItem", props);
   return (
-    <div className="flex justify-between">
+    <Link
+      href={`/${props.type}/${props.id}`}
+      prefetch={false}
+      className="flex justify-between w-full"
+    >
       <div className="flex gap-1 items-start">
         {resultAvatar(props)}
         <div className="flex flex-col gap-1">
@@ -47,13 +52,13 @@ export default function ResultListItem(props: Props) {
         </div>
       </div>
       <div className="flex gap-1">
-        {props.esi_corporation_id && props.type === "character" && (
-          <CorpAvatar size={32} id={props.esi_corporation_id} />
+        {props.esiCorporationId && props.type === "character" && (
+          <CorpAvatar size={32} id={props.esiCorporationId} />
         )}
-        {props.type !== "alliance" && props.esi_alliance_id && (
-          <AllianceAvatar size={32} id={props.esi_alliance_id} />
+        {props.type !== "alliance" && props.esiAllianceId && (
+          <AllianceAvatar size={32} id={props.esiAllianceId} />
         )}
       </div>
-    </div>
+    </Link>
   );
 }

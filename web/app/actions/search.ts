@@ -1,26 +1,21 @@
 "use server";
 
-import postgres from "postgres";
-
-const db = postgres(process.env.POSTGRES_URL || "", {
-  // ssl: process.env.NODE_ENV === "production",
-  ssl: false,
-});
+import db from "@/app/actions/db";
 
 export interface SearchAllResult {
   name: string;
   id: number;
-  esi_corporation_id?: number;
-  esi_alliance_id?: number;
+  esiCorporationId?: number;
+  esiAllianceId?: number;
   rank: number;
   type: "character" | "corporation" | "alliance";
 }
 
 export interface SearchCharactersResult {
   name: string;
-  esi_character_id: number;
-  esi_corporation_id: number;
-  esi_alliance_id?: number;
+  esiCharacterId: number;
+  esiCorporationId: number;
+  esiAllianceId?: number;
   rank: number;
 }
 
@@ -116,6 +111,8 @@ export async function searchAll(
 
     console.timeEnd(query + "-" + now);
     console.log(`query ${query}: ${rows.length} results`);
+
+    console.log("searchAll", rows);
 
     if (!rows.length) {
       return { rows: [] };
