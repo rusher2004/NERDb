@@ -4,12 +4,12 @@ import ResultList from "@/app/ui/Search/ResultList";
 
 import { useEffect, useState } from "react";
 import { useDebouncedCallback } from "use-debounce";
-import { search, SearchResult } from "@/app/actions/search";
+import { searchAll, SearchAllResult } from "@/app/actions/search";
 import { clsx } from "clsx";
 
 export default function Search() {
   const [searchTerm, setSearchTerm] = useState("");
-  const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
+  const [searchResults, setSearchResults] = useState<SearchAllResult[]>([]);
 
   const debounced = useDebouncedCallback((term) => {
     setSearchTerm(term);
@@ -19,7 +19,7 @@ export default function Search() {
     let searching = true;
 
     const doSearch = async (term: string) => {
-      const res = await search(term);
+      const res = await searchAll(term);
 
       if (searching) {
         if (res.error) {
