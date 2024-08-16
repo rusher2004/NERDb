@@ -95,7 +95,7 @@ func (c *Client) GetUnnamedCharacterIDs(ctx context.Context, count int) ([]int32
 	query := `
 		SELECT esi_character_id
 		FROM player.character
-		WHERE name IS NULL AND esi_deleted IS NOT TRUE
+		WHERE (name IS NULL OR LOWER(name) = 'unknown') AND esi_deleted IS NOT TRUE
 		LIMIT $1;
 	`
 
