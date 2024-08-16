@@ -72,6 +72,10 @@ func (u *Updater) updateCharacter(ctx context.Context, charID int32) error {
 			}
 
 			log.Printf("error getting character %d: %v\n", charID, err)
+			if err := checkLimits(res); err != nil {
+				return fmt.Errorf("esi limit met: %w", err)
+			}
+
 			return nil
 		}
 
@@ -113,6 +117,7 @@ func (u *Updater) UpdateCharacters(ctx context.Context, count int) error {
 			if errors.As(err, &limitErr) {
 				log.Printf("ESI limit reached: %v\n", limitErr)
 				time.Sleep(time.Duration(limitErr.Reset+1) * time.Second)
+				continue
 			}
 			return fmt.Errorf("error updating character %d: %w", id, err)
 		}
