@@ -45,6 +45,7 @@ func toAnySlice[T any](i []T) []any {
 // setClauses can be provided. If used, seClauses[0] must be the column(s) to conflict on, and the
 // rest of the setClauses must be the columns to update, formated as `key = value`.
 func copyAny(ctx context.Context, tx pgx.Tx, schema, table, date string, cols []string, rows [][]any, setClauses ...string) error {
+	log.Printf("copying %d %s(s)\n", len(rows), table)
 	if len(rows) == 0 {
 		return nil
 	}
@@ -450,64 +451,6 @@ func upsertZkillInfo(ctx context.Context, p DBPool, killmailID int, z zkill.ZKKi
 
 	if tag.RowsAffected() == 0 {
 		return fmt.Errorf("no rows affected")
-	}
-
-	return nil
-}
-
-// CopyCharacters uses Postgres CopyFrom to copy characters into the database, copying into a temp
-// table, then inserting into the persistent table.
-func (c *Client) CopyCharacters(ctx context.Context, characters []Character) error {
-	cols := []string{
-		"esi_character_id",
-		"esi_alliance_id",
-		"birthday",
-		"bloodline_id",
-		"esi_corporation_id",
-		"description",
-		"faction_id",
-		"gender",
-		"name",
-		"race_id",
-		"security_status",
-	}
-	var anyChars [][]any
-
-	setClauses := []string{
-		"esi_character_id",
-		"esi_alliance_id = EXCLUDED.esi_alliance_id",
-		"birthday = EXCLUDED.birthday",
-		"bloodline_id = EXCLUDED.bloodline_id",
-		"esi_corporation_id = EXCLUDED.esi_corporation_id",
-		"description = EXCLUDED.description",
-		"faction_id = EXCLUDED.faction_id",
-		"gender = EXCLUDED.gender",
-		"name = EXCLUDED.name",
-		"race_id = EXCLUDED.race_id",
-		"security_status = EXCLUDED.security_status",
-	}
-
-	for _, c := range characters {
-		anyChars = append(anyChars, []any{
-			c.CharacterID,
-			c.AllianceID,
-			c.Birthday,
-			c.BloodlineID,
-			c.CorporationID,
-			c.Description,
-			c.FactionID,
-			c.Gender,
-			c.Name,
-			c.RaceID,
-			c.SecurityStatus,
-		})
-	}
-
-	if err := pgx.BeginFunc(ctx, c.pool, func(tx pgx.Tx) error {
-
-		return copyAny(ctx, tx, "player", "character", "temp", cols, anyChars, setClauses...)
-	}); err != nil {
-		return fmt.Errorf("transaction error: %w", err)
 	}
 
 	return nil
