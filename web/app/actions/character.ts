@@ -1,11 +1,11 @@
 "use server";
 
-import db from "@/app/actions/db";
+import sql from "@/app/actions/db";
 import { KillmailParticipant, Character } from "@/app/lib/definitions";
 
 export async function getCharacter(id: number): Promise<Character | null> {
   try {
-    const [character] = await db<Character[]>`
+    const [character] = await sql<Character[]>`
       SELECT
         birthday,
         bloodline_id,
@@ -37,7 +37,7 @@ export async function getTopAttackers(
   id: number
 ): Promise<KillmailParticipant[]> {
   try {
-    const attackers = await db<KillmailParticipant[]>`
+    const attackers = await sql<KillmailParticipant[]>`
       WITH killmails AS (
         SELECT DISTINCT
           ka.esi_character_id attacker_id,
@@ -98,9 +98,10 @@ export async function getTopVictims(
   id: number
 ): Promise<KillmailParticipant[]> {
   try {
-    const victims = await db<KillmailParticipant[]>`
+    const victims = await sql<KillmailParticipant[]>`
       WITH killmails AS (
-        SELECT DISTINCT kv.esi_character_id victim_id,
+        SELECT DISTINCT
+          kv.esi_character_id victim_id,
           km.esi_killmail_id
         FROM player.character ac
           JOIN killmail.attacker ka ON ka.esi_character_id = ac.esi_character_id
