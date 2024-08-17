@@ -1,16 +1,15 @@
-import {
-  getCorporation,
-  getTopAttackersAndVictims,
-} from "@/app/actions/corporation";
-import Image from "next/image";
-import AllianceInfoBanner from "@/app/ui/Alliance/InfoBanner";
-import KillmailParticipantCard from "@/app/ui/Cards/KillmailParticipant";
 import Link from "next/link";
+import Image from "next/image";
+import { getCorporation } from "@/app/actions/corporation";
+import AllianceInfoBanner from "@/app/ui/Alliance/InfoBanner";
+import { getCachedAttackersAndVictims } from "@/app/actions/rivals";
+import KillmailParticipantCard from "@/app/ui/Cards/KillmailParticipant";
 
 export default async function Page({ params }: { params: { id: string } }) {
   const corporation = await getCorporation(parseInt(params.id));
-  const { attackers, victims } = await getTopAttackersAndVictims(
-    parseInt(params.id)
+  const { attackers, victims } = await getCachedAttackersAndVictims(
+    parseInt(params.id),
+    "corporation"
   );
 
   return (
@@ -22,7 +21,6 @@ export default async function Page({ params }: { params: { id: string } }) {
             alt={corporation!.name}
             width={256}
             height={256}
-            // className="rounded-xl"
           />
         </figure>
         <div className="card-body">

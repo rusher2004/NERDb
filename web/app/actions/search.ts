@@ -1,6 +1,6 @@
 "use server";
 
-import sql from "@/app/actions/db";
+import sql from "@/app/lib/db";
 
 export interface SearchAllResult {
   name: string;

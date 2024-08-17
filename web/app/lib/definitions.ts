@@ -45,3 +45,5 @@ export type Corporation = {
   url?: string;
   warEligible?: boolean;
 };
+
+export type ParticipantType = "alliance" | "character" | "corporation";

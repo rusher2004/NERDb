@@ -1,7 +1,5 @@
-import {
-  getCharacter,
-  getTopAttackersAndVictims,
-} from "@/app/actions/character";
+import { getCharacter } from "@/app/actions/character";
+import { getCachedAttackersAndVictims } from "@/app/actions/rivals";
 import KillmailParticipantCard from "@/app/ui/Cards/KillmailParticipant";
 import Image from "next/image";
 import clsx from "clsx";
@@ -19,8 +17,9 @@ function secStatusColor(secStatus: number) {
 
 export default async function Page({ params }: { params: { id: string } }) {
   const character = await getCharacter(parseInt(params.id));
-  const { attackers, victims } = await getTopAttackersAndVictims(
-    parseInt(params.id)
+  const { attackers, victims } = await getCachedAttackersAndVictims(
+    parseInt(params.id),
+    "character"
   );
 
   return (

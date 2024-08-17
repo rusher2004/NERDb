@@ -1,11 +1,22 @@
-import { getAlliance, getTopAttackersAndVictims } from "@/app/actions/alliance";
 import Image from "next/image";
+import { unstable_cache } from "next/cache";
+import { getAlliance } from "@/app/actions/alliance";
+import { getCachedAttackersAndVictims } from "@/app/actions/rivals";
 import KillmailParticipantCard from "@/app/ui/Cards/KillmailParticipant";
 
 export default async function Page({ params }: { params: { id: string } }) {
-  const alliance = await getAlliance(parseInt(params.id));
-  const { attackers, victims } = await getTopAttackersAndVictims(
-    parseInt(params.id)
+  const getCachedAlliance = unstable_cache(
+    async (id: number) => await getAlliance(id),
+    [`alliance-${params.id}`],
+    {
+      tags: [`cached-alliance`],
+      revalidate: 60 * 60 * 24,
+    }
+  );
+  const alliance = await getCachedAlliance(parseInt(params.id));
+  const { attackers, victims } = await getCachedAttackersAndVictims(
+    parseInt(params.id),
+    "alliance"
   );
 
   return (
@@ -17,7 +28,6 @@ export default async function Page({ params }: { params: { id: string } }) {
             alt={alliance!.name}
             width={256}
             height={256}
-            // className="rounded-xl"
           />
         </figure>
         <div className="card-body">
