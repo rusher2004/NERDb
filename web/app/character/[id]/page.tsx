@@ -24,14 +24,13 @@ export default async function Page({ params }: { params: { id: string } }) {
 
   return (
     <div>
-      <div className="card lg:card-side card-bordered shadow-xl">
+      <div className="card card-side card-bordered shadow-xl">
         <figure>
           <Image
             src={`https://images.evetech.net/characters/${character?.esiCharacterId}/portrait?size=256`}
             alt={character!.name}
             width={256}
             height={256}
-            // className="rounded-xl"
           />
         </figure>
         <div className="card-body">

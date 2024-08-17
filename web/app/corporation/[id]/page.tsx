@@ -14,7 +14,7 @@ export default async function Page({ params }: { params: { id: string } }) {
 
   return (
     <div>
-      <div className="card lg:card-side card-bordered shadow-xl">
+      <div className="card card-side card-bordered shadow-xl">
         <figure>
           <Image
             src={`https://images.evetech.net/corporations/${corporation?.esiCorporationId}/logo?size=256`}
