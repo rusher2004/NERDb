@@ -1,6 +1,7 @@
 import Image from "next/image";
 import { Suspense } from "react";
 import { unstable_cache } from "next/cache";
+import Loading from "@/app/ui/Loading/Loading";
 import { getAlliance } from "@/app/actions/alliance";
 import KillmailParticipants from "@/app/ui/KillmailParticipants/KillmailParticipantList";
 
@@ -35,13 +36,13 @@ export default async function Page({ params }: { params: { id: string } }) {
       <div className="flex justify-around">
         <div className="join join-vertical">
           <h1>Top Attackers</h1>
-          <Suspense fallback={<div>Loading...</div>}>
+          <Suspense fallback={<Loading />}>
             <KillmailParticipants id={id} type="alliance" side="attacker" />
           </Suspense>
         </div>
         <div className="flex flex-col">
           <h1>Top Victims</h1>
-          <Suspense fallback={<div>Loading...</div>}>
+          <Suspense fallback={<Loading />}>
             <KillmailParticipants id={id} type="alliance" side="victim" />
           </Suspense>
         </div>

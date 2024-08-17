@@ -2,6 +2,7 @@ import clsx from "clsx";
 import Link from "next/link";
 import Image from "next/image";
 import { Suspense } from "react";
+import Loading from "@/app/ui/Loading/Loading";
 import { getCharacter } from "@/app/actions/character";
 import CorpInfoBanner from "@/app/ui/Corporation/InfoBanner";
 import AllianceInfoBanner from "@/app/ui/Alliance/InfoBanner";
@@ -20,8 +21,8 @@ export default async function Page({ params }: { params: { id: string } }) {
   const character = await getCharacter(id);
 
   return (
-    <div>
-      <div className="card card-side card-bordered shadow-xl">
+    <div className="w-full p-7">
+      <div className="card card-side card-compact card-bordered shadow-xl">
         <figure>
           <Image
             src={`https://images.evetech.net/characters/${character?.esiCharacterId}/portrait?size=256`}
@@ -58,13 +59,13 @@ export default async function Page({ params }: { params: { id: string } }) {
       <div className="flex justify-around">
         <div className="join join-vertical">
           <h1>Top Attackers</h1>
-          <Suspense fallback={<div>Loading...</div>}>
+          <Suspense fallback={<Loading />}>
             <KillmailParticipants id={id} type="character" side="attacker" />
           </Suspense>
         </div>
         <div className="flex flex-col">
           <h1>Top Victims</h1>
-          <Suspense fallback={<div>Loading...</div>}>
+          <Suspense fallback={<Loading />}>
             <KillmailParticipants id={id} type="character" side="victim" />
           </Suspense>
         </div>

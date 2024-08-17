@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 
@@ -8,13 +9,15 @@ export default function NavBar() {
   const pathname = usePathname();
   const themes = [
     { label: "Default (Photon)", value: "photon" },
-    { label: "Amarr", value: "amarr" },
-    { label: "Caldari", value: "caldari" },
-    { label: "Gallente", value: "gallente" },
-    { label: "Minmatar", value: "minmatar" },
-    { label: "ORE", value: "ore" },
-    { label: "SoE", value: "sisters" },
+    { label: "Amarr", value: "amarr", corpNum: 500003 },
+    { label: "Caldari", value: "caldari", corpNum: 500001 },
+    { label: "Gallente", value: "gallente", corpNum: 500004 },
+    { label: "Minmatar", value: "minmatar", corpNum: 500002 },
+    { label: "ORE", value: "ore", corpNum: 500014 },
+    { label: "SoE", value: "sisters", corpNum: 500016 },
   ];
+
+  // https://images.evetech.net/corporations/500001/logo?size=128
 
   const [chosenTheme, setChosenTheme] = useState(() => {
     const ISSERVER = typeof window === "undefined";
@@ -36,15 +39,16 @@ export default function NavBar() {
         </Link>
       </div>
       <div className="flex-none gap-2">
-        {pathname !== "/" && (
-          <div className="form-control">
-            <input
-              type="text"
-              placeholder="Search"
-              className="input input-bordered w-24 md:w-auto"
-            />
-          </div>
-        )}
+        {/* {pathname !== "/" && (
+          // <div className="form-control">
+          //   <input
+          //     type="text"
+          //     placeholder="Search"
+          //     className="input input-bordered w-24 md:w-auto"
+          //   />
+          // </div>
+          // <Search />
+        )} */}
         <div className="dropdown dropdown-end">
           <div tabIndex={0} role="button" className="btn m-1">
             Theme
@@ -60,10 +64,18 @@ export default function NavBar() {
           </div>
           <ul
             tabIndex={0}
-            className="dropdown-content bg-base-200 rounded-box z-[1] w-52 p-2 shadow-2xl"
+            className="dropdown-content bg-base-200 rounded-box z-[1] w-44 p-2 shadow-2xl"
           >
             {themes.map((theme) => (
-              <li key={theme.value}>
+              <li key={theme.value} className="flex">
+                {theme.corpNum && (
+                  <Image
+                    alt={theme.label}
+                    width={32}
+                    height={32}
+                    src={`https://images.evetech.net/corporations/${theme.corpNum}/logo?size=64`}
+                  />
+                )}
                 <input
                   data-theme={theme.value}
                   type="radio"
