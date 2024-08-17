@@ -7,6 +7,7 @@ import Image from "next/image";
 import clsx from "clsx";
 import CorpInfoBanner from "@/app/ui/Corporation/InfoBanner";
 import AllianceInfoBanner from "@/app/ui/Alliance/InfoBanner";
+import Link from "next/link";
 
 function secStatusColor(secStatus: number) {
   return clsx({
@@ -42,9 +43,13 @@ export default async function Page({ params }: { params: { id: string } }) {
                 {character?.securityStatus}
               </p>
             )}
-            <CorpInfoBanner id={character!.esiCorporationId} />
+            <Link href={`/corporation/${character!.esiCorporationId}`}>
+              <CorpInfoBanner id={character!.esiCorporationId} />
+            </Link>
             {character?.esiAllianceId && (
-              <AllianceInfoBanner id={character.esiAllianceId} />
+              <Link href={`/alliance/${character!.esiAllianceId}`}>
+                <AllianceInfoBanner id={character.esiAllianceId} />
+              </Link>
             )}
           </div>
           {/* {character?.description && (

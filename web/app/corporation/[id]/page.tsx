@@ -5,6 +5,7 @@ import {
 import Image from "next/image";
 import AllianceInfoBanner from "@/app/ui/Alliance/InfoBanner";
 import KillmailParticipantCard from "@/app/ui/Cards/KillmailParticipant";
+import Link from "next/link";
 
 export default async function Page({ params }: { params: { id: string } }) {
   const corporation = await getCorporation(parseInt(params.id));
@@ -29,7 +30,9 @@ export default async function Page({ params }: { params: { id: string } }) {
 
           <div className="flex flex-col gap-1">
             {corporation?.esiAllianceId && (
-              <AllianceInfoBanner id={corporation.esiAllianceId} />
+              <Link href={`/alliance/${corporation!.esiAllianceId}`}>
+                <AllianceInfoBanner id={corporation.esiAllianceId} />
+              </Link>
             )}
           </div>
         </div>
