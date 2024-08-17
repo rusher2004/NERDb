@@ -1,11 +1,11 @@
-import { getCharacter } from "@/app/actions/character";
-import { getCachedAttackersAndVictims } from "@/app/actions/rivals";
-import KillmailParticipantCard from "@/app/ui/Cards/KillmailParticipant";
-import Image from "next/image";
 import clsx from "clsx";
+import Link from "next/link";
+import Image from "next/image";
+import { Suspense } from "react";
+import { getCharacter } from "@/app/actions/character";
 import CorpInfoBanner from "@/app/ui/Corporation/InfoBanner";
 import AllianceInfoBanner from "@/app/ui/Alliance/InfoBanner";
-import Link from "next/link";
+import KillmailParticipants from "@/app/ui/KillmailParticipants/KillmailParticipantList";
 
 function secStatusColor(secStatus: number) {
   return clsx({
@@ -16,11 +16,8 @@ function secStatusColor(secStatus: number) {
 }
 
 export default async function Page({ params }: { params: { id: string } }) {
-  const character = await getCharacter(parseInt(params.id));
-  const { attackers, victims } = await getCachedAttackersAndVictims(
-    parseInt(params.id),
-    "character"
-  );
+  const id = parseInt(params.id);
+  const character = await getCharacter(id);
 
   return (
     <div>
@@ -61,18 +58,15 @@ export default async function Page({ params }: { params: { id: string } }) {
       <div className="flex justify-around">
         <div className="join join-vertical">
           <h1>Top Attackers</h1>
-          {attackers.map((attacker) => (
-            <KillmailParticipantCard
-              key={attacker.esiCharacterId}
-              {...attacker}
-            />
-          ))}
+          <Suspense fallback={<div>Loading...</div>}>
+            <KillmailParticipants id={id} type="character" side="attacker" />
+          </Suspense>
         </div>
         <div className="flex flex-col">
           <h1>Top Victims</h1>
-          {victims.map((victim) => (
-            <KillmailParticipantCard key={victim.esiCharacterId} {...victim} />
-          ))}
+          <Suspense fallback={<div>Loading...</div>}>
+            <KillmailParticipants id={id} type="character" side="victim" />
+          </Suspense>
         </div>
       </div>
     </div>

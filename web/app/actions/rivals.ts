@@ -4,6 +4,24 @@ import sql from "@/app/lib/db";
 import { unstable_cache } from "next/cache";
 import { KillmailParticipant, ParticipantType } from "@/app/lib/definitions";
 
+export const getCachedTopAttackers = unstable_cache(
+  async (id: number, type: ParticipantType) => await getTopAttackers(id, type),
+  ["top-attackers"],
+  {
+    tags: ["cached-top-attackers"],
+    revalidate: 60 * 60 * 24,
+  }
+);
+
+export const getCachedTopVictims = unstable_cache(
+  async (id: number, type: ParticipantType) => await getTopVictims(id, type),
+  ["top-victims"],
+  {
+    tags: ["cached-top-victims"],
+    revalidate: 60 * 60 * 24,
+  }
+);
+
 export const getCachedAttackersAndVictims = unstable_cache(
   async (id: number, type: ParticipantType) =>
     await getTopAttackersAndVictims(id, type),

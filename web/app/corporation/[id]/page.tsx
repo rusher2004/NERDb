@@ -1,16 +1,13 @@
 import Link from "next/link";
 import Image from "next/image";
+import { Suspense } from "react";
 import { getCorporation } from "@/app/actions/corporation";
 import AllianceInfoBanner from "@/app/ui/Alliance/InfoBanner";
-import { getCachedAttackersAndVictims } from "@/app/actions/rivals";
-import KillmailParticipantCard from "@/app/ui/Cards/KillmailParticipant";
+import KillmailParticipants from "@/app/ui/KillmailParticipants/KillmailParticipantList";
 
 export default async function Page({ params }: { params: { id: string } }) {
-  const corporation = await getCorporation(parseInt(params.id));
-  const { attackers, victims } = await getCachedAttackersAndVictims(
-    parseInt(params.id),
-    "corporation"
-  );
+  const id = parseInt(params.id);
+  const corporation = await getCorporation(id);
 
   return (
     <div>
@@ -39,18 +36,15 @@ export default async function Page({ params }: { params: { id: string } }) {
       <div className="flex justify-around">
         <div className="join join-vertical">
           <h1>Top Attackers</h1>
-          {attackers.map((attacker) => (
-            <KillmailParticipantCard
-              key={attacker.esiCharacterId}
-              {...attacker}
-            />
-          ))}
+          <Suspense fallback={<div>Loading...</div>}>
+            <KillmailParticipants id={id} type="corporation" side="attacker" />
+          </Suspense>
         </div>
         <div className="flex flex-col">
           <h1>Top Victims</h1>
-          {victims.map((victim) => (
-            <KillmailParticipantCard key={victim.esiCharacterId} {...victim} />
-          ))}
+          <Suspense fallback={<div>Loading...</div>}>
+            <KillmailParticipants id={id} type="corporation" side="victim" />
+          </Suspense>
         </div>
       </div>
     </div>

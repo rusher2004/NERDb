@@ -1,10 +1,11 @@
 import Image from "next/image";
+import { Suspense } from "react";
 import { unstable_cache } from "next/cache";
 import { getAlliance } from "@/app/actions/alliance";
-import { getCachedAttackersAndVictims } from "@/app/actions/rivals";
-import KillmailParticipantCard from "@/app/ui/Cards/KillmailParticipant";
+import KillmailParticipants from "@/app/ui/KillmailParticipants/KillmailParticipantList";
 
 export default async function Page({ params }: { params: { id: string } }) {
+  const id = parseInt(params.id);
   const getCachedAlliance = unstable_cache(
     async (id: number) => await getAlliance(id),
     [`alliance-${params.id}`],
@@ -13,11 +14,7 @@ export default async function Page({ params }: { params: { id: string } }) {
       revalidate: 60 * 60 * 24,
     }
   );
-  const alliance = await getCachedAlliance(parseInt(params.id));
-  const { attackers, victims } = await getCachedAttackersAndVictims(
-    parseInt(params.id),
-    "alliance"
-  );
+  const alliance = await getCachedAlliance(id);
 
   return (
     <div>
@@ -38,18 +35,15 @@ export default async function Page({ params }: { params: { id: string } }) {
       <div className="flex justify-around">
         <div className="join join-vertical">
           <h1>Top Attackers</h1>
-          {attackers.map((attacker) => (
-            <KillmailParticipantCard
-              key={attacker.esiCharacterId}
-              {...attacker}
-            />
-          ))}
+          <Suspense fallback={<div>Loading...</div>}>
+            <KillmailParticipants id={id} type="alliance" side="attacker" />
+          </Suspense>
         </div>
         <div className="flex flex-col">
           <h1>Top Victims</h1>
-          {victims.map((victim) => (
-            <KillmailParticipantCard key={victim.esiCharacterId} {...victim} />
-          ))}
+          <Suspense fallback={<div>Loading...</div>}>
+            <KillmailParticipants id={id} type="alliance" side="victim" />
+          </Suspense>
         </div>
       </div>
     </div>
