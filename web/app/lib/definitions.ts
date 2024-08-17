@@ -8,6 +8,11 @@ export type Alliance = {
   ticker: string;
 };
 
+export type KillmailParticipant = {
+  esiCharacterId: number;
+  numberOfKills: number;
+};
+
 export type Character = {
   birthday: Date;
   bloodlineId: number;

@@ -1,4 +1,3 @@
-import Avatar from "@/app/ui/Avatar/Avatar";
 import AllianceAvatar from "@/app/ui/Alliance/Avatar";
 import CharAvatar from "@/app/ui/Character/Avatar";
 import CorpAvatar from "@/app/ui/Corporation/Avatar";
@@ -29,16 +28,7 @@ function resultAvatar(result: Props) {
   return null;
 }
 
-function secStatusColor(secStatus: number) {
-  return clsx({
-    "text-green-500": secStatus > 0,
-    "text-red-500": secStatus < 0,
-    "text-gray-500": secStatus === 0,
-  });
-}
-
 export default function ResultListItem(props: Props) {
-  console.log("ResultListItem", props);
   return (
     <Link
       href={`/${props.type}/${props.id}`}

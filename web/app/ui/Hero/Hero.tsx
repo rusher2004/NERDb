@@ -2,7 +2,7 @@ import Search from "@/app/ui/Search/Search";
 
 export default function Hero() {
   return (
-    <div className="hero bg-base-200 min-h-screen">
+    <div className="hero h-full">
       <div className="hero-content text-center text-base-content">
         <div className="max-w-md">
           <h1 className="text-5xl font-bold">Hello there</h1>

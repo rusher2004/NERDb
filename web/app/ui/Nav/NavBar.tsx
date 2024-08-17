@@ -1,8 +1,11 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
 
 export default function NavBar() {
+  const pathname = usePathname();
   const themes = [
     { label: "Default (Photon)", value: "photon" },
     { label: "Amarr", value: "amarr" },
@@ -26,18 +29,22 @@ export default function NavBar() {
   }, [chosenTheme]);
 
   return (
-    <nav className="navbar">
+    <nav className="navbar bg-base-200">
       <div className="flex-1">
-        <a className="btn btn-ghost text-4xl text-primary">NERDb</a>
+        <Link href="/" className="btn btn-ghost text-4xl text-primary">
+          NERDb
+        </Link>
       </div>
       <div className="flex-none gap-2">
-        <div className="form-control">
-          <input
-            type="text"
-            placeholder="Search"
-            className="input input-bordered w-24 md:w-auto"
-          />
-        </div>
+        {pathname !== "/" && (
+          <div className="form-control">
+            <input
+              type="text"
+              placeholder="Search"
+              className="input input-bordered w-24 md:w-auto"
+            />
+          </div>
+        )}
         <div className="dropdown dropdown-end">
           <div tabIndex={0} role="button" className="btn m-1">
             Theme
