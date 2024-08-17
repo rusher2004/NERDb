@@ -80,7 +80,7 @@ export default function NavBar() {
                   data-theme={theme.value}
                   type="radio"
                   name="theme-dropdown"
-                  className="theme-controller btn btn-sm btn-block btn-ghost justify-start text-primary"
+                  className="theme-controller btn btn-sm btn-ghost flex-grow justify-start text-primary"
                   aria-label={theme.label}
                   value={theme.value}
                   checked={chosenTheme === theme.value}
