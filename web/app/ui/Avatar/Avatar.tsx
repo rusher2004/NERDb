@@ -1,5 +1,3 @@
-import Image from "next/image";
-
 export default function Avatar({
   alt,
   size,
@@ -10,12 +8,10 @@ export default function Avatar({
   src: string;
 }) {
   return (
-    <Image
-      className="size-8 md:size-11"
-      src={src}
-      alt={alt}
-      width={size}
-      height={size}
-    />
+    <div className="avatar">
+      <div className="max-w-24 max-h-24 rounded-md">
+        <img src={src} alt={alt} />
+      </div>
+    </div>
   );
 }

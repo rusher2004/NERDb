@@ -1,4 +1,3 @@
-import Image from "next/image";
 import { Suspense } from "react";
 import { unstable_cache } from "next/cache";
 import Loading from "@/app/ui/Loading/Loading";
@@ -21,12 +20,14 @@ export default async function Page({ params }: { params: { id: string } }) {
     <div>
       <div className="card card-side card-bordered shadow-xl">
         <figure>
-          <Image
-            src={`https://images.evetech.net/Alliance/${params.id}_64.png`}
-            alt={alliance!.name}
-            width={256}
-            height={256}
-          />
+          <div className="avatar">
+            <div className="max-w-48 max-h-48">
+              <img
+                src={`https://images.evetech.net/Alliance/${params.id}_64.png`}
+                alt={alliance!.name}
+              />
+            </div>
+          </div>
         </figure>
         <div className="card-body">
           <h2 className="card-title">{alliance!.name}</h2>

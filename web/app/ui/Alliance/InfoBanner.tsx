@@ -5,7 +5,7 @@ export default async function InfoBanner({ id }: { id: number }) {
   const alliance = await getAlliance(id);
 
   return (
-    <div className="flex gap-1">
+    <div className="flex gap-1 justify-start items-center">
       <Avatar id={id} size={64} />
       <div>
         <h1>{alliance?.name}</h1>

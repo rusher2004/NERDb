@@ -1,5 +1,4 @@
 import Link from "next/link";
-import Image from "next/image";
 import { Suspense } from "react";
 import Loading from "@/app/ui/Loading/Loading";
 import { getCorporation } from "@/app/actions/corporation";
@@ -14,12 +13,14 @@ export default async function Page({ params }: { params: { id: string } }) {
     <div>
       <div className="card card-side card-bordered shadow-xl">
         <figure>
-          <Image
-            src={`https://images.evetech.net/corporations/${corporation?.esiCorporationId}/logo?size=256`}
-            alt={corporation!.name}
-            width={256}
-            height={256}
-          />
+          <div className="avatar">
+            <div className="max-w-48 max-h-48">
+              <img
+                src={`https://images.evetech.net/corporations/${corporation?.esiCorporationId}/logo?size=256`}
+                alt={corporation!.name}
+              />
+            </div>
+          </div>
         </figure>
         <div className="card-body">
           <h2 className="card-title">{corporation!.name}</h2>

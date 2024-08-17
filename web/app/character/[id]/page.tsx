@@ -1,6 +1,5 @@
 import clsx from "clsx";
 import Link from "next/link";
-import Image from "next/image";
 import { Suspense } from "react";
 import Loading from "@/app/ui/Loading/Loading";
 import { getCharacter } from "@/app/actions/character";
@@ -24,22 +23,25 @@ export default async function Page({ params }: { params: { id: string } }) {
     <div className="w-full p-7">
       <div className="card card-side card-compact card-bordered shadow-xl">
         <figure>
-          <Image
-            src={`https://images.evetech.net/characters/${character?.esiCharacterId}/portrait?size=256`}
-            alt={character!.name}
-            width={256}
-            height={256}
-          />
+          <div className="avatar">
+            <div className="max-w-48 max-h-48">
+              <img
+                src={`https://images.evetech.net/characters/${character?.esiCharacterId}/portrait?size=256`}
+                alt={character!.name}
+              />
+            </div>
+          </div>
         </figure>
         <div className="card-body">
           <h2 className="card-title">{character!.name}</h2>
 
+          {/* {character?.securityStatus && (
+            <p className={secStatusColor(character.securityStatus)}>
+              {character?.securityStatus}
+            </p>
+          )} */}
+
           <div className="flex flex-col gap-1">
-            {character?.securityStatus && (
-              <p className={secStatusColor(character.securityStatus)}>
-                {character?.securityStatus}
-              </p>
-            )}
             <Link href={`/corporation/${character!.esiCorporationId}`}>
               <CorpInfoBanner id={character!.esiCorporationId} />
             </Link>
