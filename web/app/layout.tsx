@@ -1,9 +1,6 @@
 import type { Metadata } from "next";
 import NavBar from "@/app/ui/Nav/NavBar";
-import { Inter } from "next/font/google";
 import "./globals.css";
-
-const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: "New Eden Rivalry Database",
