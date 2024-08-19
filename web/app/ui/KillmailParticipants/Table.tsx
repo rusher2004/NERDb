@@ -8,7 +8,7 @@ export default function Table({
   role: "attacker" | "victim";
 }) {
   return (
-    <table className="table">
+    <table className="table table-sm">
       <thead>
         <tr>
           <th className="text-left">Character</th>
