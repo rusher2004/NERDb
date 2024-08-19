@@ -1,7 +1,8 @@
+import "./globals.css";
 import type { Metadata } from "next";
 import NavBar from "@/app/ui/Nav/NavBar";
 import { spaceMono } from "@/app/ui/fonts";
-import "./globals.css";
+import { Analytics } from "@vercel/analytics/react";
 
 export const metadata: Metadata = {
   title: "New Eden Rivalry Database",
@@ -19,6 +20,7 @@ export default function RootLayout({
         <main className="min-h-dvh flex flex-col items-center gap-4">
           <NavBar />
           {children}
+          <Analytics />
         </main>
       </body>
     </html>
