@@ -3,9 +3,15 @@
 import Image from "next/image";
 import { useEffect, useLayoutEffect, useState } from "react";
 
+interface Theme {
+  label: string;
+  value: string;
+  corpNum: number;
+}
+
 export default function ThemeSelector() {
-  const themes = [
-    { label: "Default (Photon)", value: "photon" },
+  const themes: Theme[] = [
+    { label: "Photon", value: "photon", corpNum: 109299958 },
     { label: "Amarr", value: "amarr", corpNum: 500003 },
     { label: "Caldari", value: "caldari", corpNum: 500001 },
     { label: "Gallente", value: "gallente", corpNum: 500004 },
@@ -13,24 +19,40 @@ export default function ThemeSelector() {
     { label: "ORE", value: "ore", corpNum: 500014 },
     { label: "SoE", value: "sisters", corpNum: 500016 },
   ];
-  const [chosenTheme, setChosenTheme] = useState<string | null>(null);
+  const [chosenTheme, setChosenTheme] = useState<Theme | null>(null);
 
   useLayoutEffect(() => {
     const localTheme = localStorage.getItem("theme");
 
-    setChosenTheme(localTheme || "photon");
+    const photon = themes[0];
+    const found = themes.find((theme) => theme.value === localTheme);
+
+    setChosenTheme(found || photon);
   }, []);
 
   useEffect(() => {
     if (!chosenTheme) return;
 
-    localStorage.setItem("theme", chosenTheme);
+    localStorage.setItem("theme", chosenTheme.value);
   }, [chosenTheme]);
+
+  function handleThemeChange(event: React.ChangeEvent<HTMLInputElement>) {
+    const theme = themes.find((theme) => theme.value === event.target.value);
+
+    if (theme) setChosenTheme(theme);
+  }
 
   return (
     <div className="dropdown dropdown-end">
       <div tabIndex={0} role="button" className="btn m-1">
-        Theme
+        {chosenTheme && (
+          <Image
+            alt={chosenTheme.label}
+            width={32}
+            height={32}
+            src={`https://images.evetech.net/corporations/${chosenTheme.corpNum}/logo?size=64`}
+          />
+        )}
         <svg
           width="12px"
           height="12px"
@@ -59,11 +81,11 @@ export default function ThemeSelector() {
               data-theme={theme.value}
               type="radio"
               name="theme-dropdown"
-              className="theme-controller btn btn-sm btn-ghost flex-grow justify-start text-primary"
+              className="theme-controller btn btn-sm btn-ghost flex-grow justify-start text-primary text-xs"
               aria-label={theme.label}
               value={theme.value}
-              checked={chosenTheme === theme.value}
-              onChange={() => setChosenTheme(theme.value)}
+              checked={chosenTheme?.value === theme.value}
+              onChange={handleThemeChange}
             />
           </li>
         ))}

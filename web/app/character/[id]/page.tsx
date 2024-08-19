@@ -5,7 +5,7 @@ import Loading from "@/app/ui/Loading/Loading";
 import { getCharacter } from "@/app/actions/character";
 import CorpInfoBanner from "@/app/ui/Corporation/InfoBanner";
 import AllianceInfoBanner from "@/app/ui/Alliance/InfoBanner";
-import KillmailParticipants from "@/app/ui/KillmailParticipants/KillmailParticipantList";
+import KillmailParticipants from "@/app/ui/KillmailParticipants/ParticipantList";
 
 function secStatusColor(secStatus: number) {
   return clsx({
@@ -35,11 +35,11 @@ export default async function Page({ params }: { params: { id: string } }) {
         <div className="card-body">
           <h2 className="card-title">{character!.name}</h2>
 
-          {/* {character?.securityStatus && (
+          {character?.securityStatus && (
             <p className={secStatusColor(character.securityStatus)}>
               {character?.securityStatus}
             </p>
-          )} */}
+          )}
 
           <div className="flex flex-col gap-1">
             <Link href={`/corporation/${character!.esiCorporationId}`}>
@@ -58,7 +58,7 @@ export default async function Page({ params }: { params: { id: string } }) {
           )} */}
         </div>
       </div>
-      <div className="flex justify-evenly gap-6 md:gap-9">
+      <div className="flex flex-col md:flex-row justify-evenly gap-6 md:gap-9">
         <Suspense fallback={<Loading />}>
           <KillmailParticipants id={id} type="character" role="attacker" />
         </Suspense>

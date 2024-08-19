@@ -2,7 +2,7 @@ import { Suspense } from "react";
 import { unstable_cache } from "next/cache";
 import Loading from "@/app/ui/Loading/Loading";
 import { getAlliance } from "@/app/actions/alliance";
-import KillmailParticipants from "@/app/ui/KillmailParticipants/KillmailParticipantList";
+import KillmailParticipants from "@/app/ui/KillmailParticipants/ParticipantList";
 
 export default async function Page({ params }: { params: { id: string } }) {
   const id = parseInt(params.id);
@@ -34,7 +34,7 @@ export default async function Page({ params }: { params: { id: string } }) {
         </div>
       </div>
 
-      <div className="flex justify-around">
+      <div className="flex flex-col md:flex-row justify-evenly gap-6 md:gap-9">
         <Suspense fallback={<Loading />}>
           <KillmailParticipants id={id} type="alliance" role="attacker" />
         </Suspense>
