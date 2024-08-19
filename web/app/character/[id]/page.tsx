@@ -32,16 +32,20 @@ export default async function Page({ params }: { params: { id: string } }) {
             </div>
           </div>
         </figure>
-        <div className="card-body">
+        <div className="card-body gap-1">
           <h2 className="card-title">{character!.name}</h2>
 
           {character?.securityStatus && (
-            <p className={secStatusColor(character.securityStatus)}>
+            <p
+              className={clsx("px-2", [
+                secStatusColor(character.securityStatus),
+              ])}
+            >
               {character?.securityStatus}
             </p>
           )}
 
-          <div className="flex flex-col gap-1">
+          <div className="flex flex-col gap-2">
             <Link href={`/corporation/${character!.esiCorporationId}`}>
               <CorpInfoBanner id={character!.esiCorporationId} />
             </Link>

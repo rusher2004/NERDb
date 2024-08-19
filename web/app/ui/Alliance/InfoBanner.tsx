@@ -5,11 +5,11 @@ export default async function InfoBanner({ id }: { id: number }) {
   const alliance = await getAlliance(id);
 
   return (
-    <div className="flex gap-1 justify-start items-center">
+    <div className="flex gap-1 justify-start items-start">
       <Avatar id={id} size={64} />
       <div>
         <h1>{alliance?.name}</h1>
-        <p>{alliance?.ticker}</p>
+        <p>[{alliance?.ticker}]</p>
       </div>
     </div>
   );
