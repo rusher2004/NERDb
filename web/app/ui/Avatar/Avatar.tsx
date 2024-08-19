@@ -9,7 +9,7 @@ export default function Avatar({
 }) {
   return (
     <div className="avatar">
-      <div className="max-w-24 max-h-24 rounded-md">
+      <div className="max-w-24 max-h-24">
         <img src={src} alt={alt} />
       </div>
     </div>

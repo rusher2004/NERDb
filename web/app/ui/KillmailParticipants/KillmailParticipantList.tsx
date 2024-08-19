@@ -4,25 +4,21 @@ import {
   getCachedTopVictims,
 } from "@/app/actions/rivals";
 import KillmailParticipantCard from "@/app/ui/KillmailParticipants/KillmailParticipant";
+import Plaque from "../Plaque/Plaque";
 
 export default async function KillmailParticipantList({
   id,
   type,
-  side,
+  role: role,
 }: {
   id: number;
   type: ParticipantType;
-  side: "attacker" | "victim";
+  role: "attacker" | "victim";
 }) {
   const data =
-    side === "attacker"
+    role === "attacker"
       ? await getCachedTopAttackers(id, type)
       : await getCachedTopVictims(id, type);
 
-  return data.map((participant) => (
-    <KillmailParticipantCard
-      key={participant.esiCharacterId}
-      {...participant}
-    />
-  ));
+  return <Plaque {...{ participant: data[0], role }} />;
 }

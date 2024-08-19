@@ -20,7 +20,7 @@ export default async function Page({ params }: { params: { id: string } }) {
   const character = await getCharacter(id);
 
   return (
-    <div className="w-full p-7">
+    <div className="flex flex-col gap-3">
       <div className="card card-side card-compact card-bordered shadow-xl">
         <figure>
           <div className="avatar">
@@ -58,19 +58,13 @@ export default async function Page({ params }: { params: { id: string } }) {
           )} */}
         </div>
       </div>
-      <div className="flex justify-around">
-        <div className="join join-vertical">
-          <h1>Top Attackers</h1>
-          <Suspense fallback={<Loading />}>
-            <KillmailParticipants id={id} type="character" side="attacker" />
-          </Suspense>
-        </div>
-        <div className="flex flex-col">
-          <h1>Top Victims</h1>
-          <Suspense fallback={<Loading />}>
-            <KillmailParticipants id={id} type="character" side="victim" />
-          </Suspense>
-        </div>
+      <div className="flex justify-evenly gap-6 md:gap-9">
+        <Suspense fallback={<Loading />}>
+          <KillmailParticipants id={id} type="character" role="attacker" />
+        </Suspense>
+        <Suspense fallback={<Loading />}>
+          <KillmailParticipants id={id} type="character" role="victim" />
+        </Suspense>
       </div>
     </div>
   );

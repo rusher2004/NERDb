@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import NavBar from "@/app/ui/Nav/NavBar";
+import { spaceMono } from "@/app/ui/fonts";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -14,8 +15,8 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body>
-        <main className="min-h-dvh flex flex-col items-center">
+      <body className={`${spaceMono.className} antialiased`}>
+        <main className="min-h-dvh flex flex-col items-center gap-4">
           <NavBar />
           {children}
         </main>

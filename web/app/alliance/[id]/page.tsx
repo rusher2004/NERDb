@@ -17,7 +17,7 @@ export default async function Page({ params }: { params: { id: string } }) {
   const alliance = await getCachedAlliance(id);
 
   return (
-    <div>
+    <div className="flex flex-col gap-3">
       <div className="card card-side card-bordered shadow-xl">
         <figure>
           <div className="avatar">
@@ -35,18 +35,12 @@ export default async function Page({ params }: { params: { id: string } }) {
       </div>
 
       <div className="flex justify-around">
-        <div className="join join-vertical">
-          <h1>Top Attackers</h1>
-          <Suspense fallback={<Loading />}>
-            <KillmailParticipants id={id} type="alliance" side="attacker" />
-          </Suspense>
-        </div>
-        <div className="flex flex-col">
-          <h1>Top Victims</h1>
-          <Suspense fallback={<Loading />}>
-            <KillmailParticipants id={id} type="alliance" side="victim" />
-          </Suspense>
-        </div>
+        <Suspense fallback={<Loading />}>
+          <KillmailParticipants id={id} type="alliance" role="attacker" />
+        </Suspense>
+        <Suspense fallback={<Loading />}>
+          <KillmailParticipants id={id} type="alliance" role="victim" />
+        </Suspense>
       </div>
     </div>
   );
