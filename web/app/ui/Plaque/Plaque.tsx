@@ -18,8 +18,8 @@ export default async function Plaque({
         className="flex flex-col justify-center items-center"
         href={`/character/${participant.esiCharacterId}`}
       >
-        <div className="avatar bg-base-200 px-1">
-          <div className="w-32">
+        <div className="avatar px-1">
+          <div className="w-32 rounded">
             <img
               src={`https://images.evetech.net/characters/${participant.esiCharacterId}/portrait?tenant=tranquility&size=128`}
               alt="avatar"
