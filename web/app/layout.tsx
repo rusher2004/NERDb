@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import NavBar from "@/app/ui/Nav/NavBar";
 import { spaceMono } from "@/app/ui/fonts";
 import { Analytics } from "@vercel/analytics/react";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 
 export const metadata: Metadata = {
   title: "New Eden Rivalry Database",
@@ -21,6 +22,7 @@ export default function RootLayout({
           <NavBar />
           {children}
           <Analytics />
+          <SpeedInsights />
         </main>
       </body>
     </html>
