@@ -20,7 +20,7 @@ export default function Table({
       </thead>
       <tbody>
         {participants.map((participant) => (
-          <TableRow {...participant} />
+          <TableRow key={participant.esiCharacterId} {...participant} />
         ))}
       </tbody>
     </table>

@@ -3,7 +3,7 @@ import postgres from "postgres";
 const sql = postgres(process.env.POSTGRES_URL || "", {
   // ssl: process.env.NODE_ENV === "production" ? "prefer" : false,
   ssl: "prefer",
-  database: "nerdb",
+  database: "postgres",
   transform: postgres.camel,
   max: 1000,
   idle_timeout: 20,
