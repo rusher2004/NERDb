@@ -1,6 +1,6 @@
 "use client";
 
-import Image from "next/image";
+import Avatar from "@/app/ui/Corporation/Avatar";
 import { useEffect, useLayoutEffect, useState } from "react";
 
 interface Theme {
@@ -45,14 +45,7 @@ export default function ThemeSelector() {
   return (
     <div className="dropdown dropdown-end">
       <div tabIndex={0} role="button" className="btn m-1">
-        {chosenTheme && (
-          <Image
-            alt={chosenTheme.label}
-            width={32}
-            height={32}
-            src={`https://images.evetech.net/corporations/${chosenTheme.corpNum}/logo?size=64`}
-          />
-        )}
+        {chosenTheme && <Avatar size={32} id={chosenTheme.corpNum} />}
         <svg
           width="12px"
           height="12px"
@@ -68,20 +61,13 @@ export default function ThemeSelector() {
         className="dropdown-content bg-base-200 rounded-box z-[1] w-44 p-2 shadow-2xl"
       >
         {themes.map((theme) => (
-          <li key={theme.value} className="flex">
-            {theme.corpNum && (
-              <Image
-                alt={theme.label}
-                width={32}
-                height={32}
-                src={`https://images.evetech.net/corporations/${theme.corpNum}/logo?size=64`}
-              />
-            )}
+          <li key={theme.value} className="flex items-center">
+            {theme.corpNum && <Avatar size={32} id={theme.corpNum} />}
             <input
               data-theme={theme.value}
               type="radio"
               name="theme-dropdown"
-              className="theme-controller btn btn-sm btn-ghost flex-grow justify-start text-primary text-xs"
+              className="theme-controller btn btn-sm btn-ghost flex-grow justify-start text-primary text-sm"
               aria-label={theme.label}
               value={theme.value}
               checked={chosenTheme?.value === theme.value}
