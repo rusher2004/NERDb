@@ -38,6 +38,20 @@ func (e ESILimitError) Error() string {
 	return fmt.Sprintf("ESI error limit reached: remain %d, reset %d", e.Remain, e.Reset)
 }
 
+type ESIUnknownError struct {
+	Err    error
+	Header http.Header
+}
+
+func (e ESIUnknownError) Error() string {
+	headersStr := ""
+	for k, v := range e.Header {
+		headersStr += fmt.Sprintf("%s: %s\n", k, v)
+	}
+
+	return fmt.Sprintf("unknown ESI error: %s; headers: %s", e.Err, headersStr)
+}
+
 type ErrNoUnnamedAlliances struct{}
 
 func (e ErrNoUnnamedAlliances) Error() string {
@@ -93,11 +107,11 @@ func checkLimits(res *http.Response) error {
 
 	remainInt, err := strconv.Atoi(remain)
 	if err != nil {
-		return fmt.Errorf("error converting remain to int: %w", err)
+		return ESIUnknownError{Err: fmt.Errorf("remain parse error: %w", err), Header: res.Header.Clone()}
 	}
 	resetInt, err := strconv.Atoi(reset)
 	if err != nil {
-		return fmt.Errorf("error converting reset to int: %w", err)
+		return ESIUnknownError{Err: fmt.Errorf("reset parse error: %w", err), Header: res.Header.Clone()}
 	}
 
 	if remainInt < 10 {

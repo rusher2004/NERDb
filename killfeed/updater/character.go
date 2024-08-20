@@ -57,6 +57,31 @@ func esiCharToDBChar(id int32, in esi.GetCharactersCharacterIdOk) db.Character {
 	}
 }
 
+func fetchCharacter(ctx context.Context, cc *ESICharacterClient, charID int32) (db.Character, bool, error) {
+	ok, res, err := (*cc).GetCharactersCharacterId(ctx, int32(charID), nil)
+	if err != nil {
+		var esiErr esi.GenericSwaggerError
+		if errors.As(err, &esiErr) {
+			switch t := esiErr.Model().(type) {
+			case esi.GetCharactersCharacterIdNotFound:
+				log.Printf("character %d not found: %s\n", charID, t.Error_)
+				return db.Character{}, true, nil
+			}
+
+			if err := checkLimits(res); err != nil {
+				return db.Character{}, false, fmt.Errorf("esi limit met: %w", err)
+			}
+
+			return db.Character{}, false, fmt.Errorf("unkown ESI error: %w", err)
+		}
+
+		return db.Character{}, false, ESIUnknownError{Err: err, Header: res.Header.Clone()}
+	}
+	defer res.Body.Close()
+
+	return esiCharToDBChar(charID, ok), false, nil
+}
+
 // updateCharacter fetches character info from the ESI API and then updates the corresponding row in the database.
 func (u *Updater) updateCharacter(ctx context.Context, charID int32) error {
 	ok, res, err := (*u.esiChar).GetCharactersCharacterId(ctx, int32(charID), nil)
@@ -110,17 +135,36 @@ func (u *Updater) UpdateCharacters(ctx context.Context, count int) error {
 		return ErrNoUnnamedCharacters{}
 	}
 
+	chars := make([]db.Character, 0)
+	deletedChars := make([]int32, 0)
 	for i, id := range charIDs {
 		log.Printf("fetching character %d (%d/%d)\n", id, i+1, len(charIDs))
-		if err := u.updateCharacter(ctx, id); err != nil {
+		char, deleted, err := fetchCharacter(ctx, u.esiChar, id)
+		if err != nil {
 			var limitErr ESILimitError
 			if errors.As(err, &limitErr) {
 				log.Printf("ESI limit reached: %v\n", limitErr)
 				time.Sleep(time.Duration(limitErr.Reset+1) * time.Second)
 				continue
 			}
-			return fmt.Errorf("error updating character %d: %w", id, err)
+
+			return fmt.Errorf("error fetching character %d: %w", id, err)
 		}
+
+		if deleted {
+			deletedChars = append(deletedChars, id)
+			continue
+		}
+
+		chars = append(chars, char)
+	}
+
+	if err := u.db.CopyCharacters(ctx, chars); err != nil {
+		return fmt.Errorf("error copying characters: %w", err)
+	}
+
+	if err := u.db.CopyDeletedCharacters(ctx, deletedChars); err != nil {
+		return fmt.Errorf("error copying deleted characters: %w", err)
 	}
 
 	return nil
