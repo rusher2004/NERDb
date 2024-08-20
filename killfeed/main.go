@@ -113,8 +113,8 @@ func main() {
 						return err
 					}
 
-					log.Println("sleeping for 1 minute")
-					time.Sleep(1 * time.Minute)
+					// log.Println("sleeping for 1 minute")
+					// time.Sleep(1 * time.Minute)
 				}
 
 			case "everef":
