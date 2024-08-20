@@ -66,6 +66,9 @@ func fetchCharacter(ctx context.Context, cc *ESICharacterClient, charID int32) (
 			case esi.GetCharactersCharacterIdNotFound:
 				log.Printf("character %d not found: %s\n", charID, t.Error_)
 				return db.Character{}, true, nil
+			case esi.GatewayTimeout:
+				log.Printf("gateway timeout (%d seconds): %s\n", t.Timeout, t.Error_)
+				return db.Character{}, false, ESILimitError{Remain: 0, Reset: int(t.Timeout)}
 			}
 
 			if err := checkLimits(res); err != nil {
