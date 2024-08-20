@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Suspense } from "react";
 import Loading from "@/app/ui/Loading/Loading";
 import { getCharacter } from "@/app/actions/character";
+import FactionInfoBanner from "@/app/ui/Faction/InfoBanner";
 import CorpInfoBanner from "@/app/ui/Corporation/InfoBanner";
 import AllianceInfoBanner from "@/app/ui/Alliance/InfoBanner";
 import KillmailParticipants from "@/app/ui/KillmailParticipants/ParticipantList";
@@ -52,6 +53,11 @@ export default async function Page({ params }: { params: { id: string } }) {
             {character?.esiAllianceId && (
               <Link href={`/alliance/${character!.esiAllianceId}`}>
                 <AllianceInfoBanner id={character.esiAllianceId} />
+              </Link>
+            )}
+            {character?.factionId && (
+              <Link href={`/faction/${character.factionId}`}>
+                <FactionInfoBanner id={character.factionId} />
               </Link>
             )}
           </div>

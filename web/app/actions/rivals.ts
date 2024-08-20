@@ -40,11 +40,13 @@ async function getTopAttackers(
     const whereColumn = () => {
       switch (type) {
         case "alliance":
-          return sql`vc.esi_alliance_id = ${id}`;
+          return sql`kv.esi_alliance_id = ${id}`;
         case "character":
-          return sql`vc.esi_character_id = ${id}`;
+          return sql`kv.esi_character_id = ${id}`;
         case "corporation":
-          return sql`vc.esi_corporation_id = ${id}`;
+          return sql`kv.esi_corporation_id = ${id}`;
+        case "faction":
+          return sql`kv.esi_faction_id = ${id}`;
       }
     };
 
@@ -89,11 +91,13 @@ async function getTopVictims(
     const whereColumn = () => {
       switch (type) {
         case "alliance":
-          return sql`ac.esi_alliance_id = ${id}`;
+          return sql`ka.esi_alliance_id = ${id}`;
         case "character":
-          return sql`ac.esi_character_id = ${id}`;
+          return sql`ka.esi_character_id = ${id}`;
         case "corporation":
-          return sql`ac.esi_corporation_id = ${id}`;
+          return sql`ka.esi_corporation_id = ${id}`;
+        case "faction":
+          return sql`ka.esi_faction_id = ${id}`;
       }
     };
 

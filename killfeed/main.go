@@ -70,7 +70,7 @@ func main() {
 	if lstnrEnable {
 		log.Println("running listener")
 		lstnr := listener.NewListener(&cl, *pool)
-		go lstnr.Listen(ctx)
+		go lstnr.Listen(ctx, 1000)
 	}
 
 	if erEnable {

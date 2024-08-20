@@ -46,4 +46,34 @@ export type Corporation = {
   warEligible?: boolean;
 };
 
-export type ParticipantType = "alliance" | "character" | "corporation";
+export type Faction = {
+  corporationID: number;
+  descriptionID: LocalizedMap;
+  iconID: number;
+  memberRaces: number[];
+  militiaCorporationID: number;
+  nameID: LocalizedMap;
+  shortDescriptionID: LocalizedMap;
+  sizeFactor: number;
+  solarSystemID: number;
+  uniqueName: boolean;
+  factionID: number;
+};
+
+export type LocalizedMap = {
+  de: string;
+  en: string;
+  es: string;
+  fr: string;
+  ja: string;
+  ko: string;
+  ru: string;
+  zh: string;
+  it?: string;
+};
+
+export type ParticipantType =
+  | "alliance"
+  | "character"
+  | "corporation"
+  | "faction";
