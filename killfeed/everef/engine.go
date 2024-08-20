@@ -155,7 +155,6 @@ func (e *Engine) RunCharacterUpdater(ctx context.Context, dir string, batchSize 
 		chars = append(chars, c.toDBCharacter())
 
 		if (len(chars) == batchSize || !scanner.Scan()) && len(chars) > 0 {
-			log.Printf("copying %d characters", batchSize)
 			if err := e.db.CopyCharacters(ctx, chars); err != nil {
 				return fmt.Errorf("error copying characters: %w", err)
 			}
