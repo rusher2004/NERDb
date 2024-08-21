@@ -155,7 +155,9 @@ func (u *Updater) UpdateCharacters(ctx context.Context, count int) error {
 			// there's a bunch of unknown errors being return, but aren't a result of error limiting. It's
 			// disruptive, and just works to restart. So we'll just log it, wait, and continue.
 			log.Printf("error fetching character %d: %v\n", id, err)
+			log.Println("waiting 30 seconds before continuing")
 			time.Sleep(30 * time.Second)
+			continue
 		}
 
 		if deleted {
