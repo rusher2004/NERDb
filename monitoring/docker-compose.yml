@@ -22,7 +22,9 @@ services:
       - 9100:9100
 
   alert-manager:
-    image: prom/alertmanager
+    image: prom/alertmanager:main
+    command:
+      - "--config.file=alertmanager.yml"
     secrets:
       - source: discord-url
         target: DISCORD_WEBHOOK_URL

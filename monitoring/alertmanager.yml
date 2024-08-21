@@ -4,5 +4,5 @@ route:
 receivers:
   - name: discord
     discord_configs:
-      webhook_url_file: /run/secrets/DISCORD_WEBHOOK_URL
+      - webhook_url_file: /run/secrets/DISCORD_WEBHOOK_URL
 
