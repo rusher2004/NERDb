@@ -1,0 +1,68 @@
+name: prometheus
+
+services:
+  prometheus:
+    image: prom/prometheus
+    container_name: prometheus
+    secrets:
+      - source: supabase-key
+        target: SUPABASE_SERVICE_ROLE_KEY
+    volumes:
+      - "./prometheus.yml:/etc/prometheus/prometheus.yml"
+      - "./rules.yml:/etc/prometheus/rules.yml"
+      - prometheus-storage:/prometheus
+    networks:
+      - monitoring
+    ports:
+      - 9090:9090
+
+  node-exporter:
+    image: prom/node-exporter
+    container_name: node-exporter
+    networks:
+      - monitoring
+    ports:
+      - 9100:9100
+
+  alert-manager:
+    image: prom/alertmanager:main
+    container_name: alert-manager
+    command:
+      - "--config.file=alertmanager.yml"
+    secrets:
+      - source: discord-url
+        target: DISCORD_WEBHOOK_URL
+    volumes:
+      - "./alertmanager.yml:/alertmanager/alertmanager.yml"
+    networks:
+      - monitoring
+    ports:
+      - 9093:9093
+
+  grafana:
+    image: grafana/grafana-enterprise
+    container_name: grafana
+    environment:
+      - GF_INSTALL_PLUGINS=grafana-clock-panel
+    networks:
+      - monitoring
+    ports:
+      - 3000:3000
+    restart: unless-stopped
+    volumes:
+      - grafana-storage:/var/lib/grafana
+
+networks:
+  monitoring:
+    driver: bridge
+
+secrets:
+  discord-url:
+    file: ./secrets/DISCORD_WEBHOOK_URL
+  supabase-key:
+    file: ./secrets/SUPABASE_SERVICE_ROLE_KEY
+
+volumes:
+  grafana-storage:
+  prometheus-storage:
+
