@@ -1,6 +1,6 @@
-import { Space_Mono } from "next/font/google";
+import { Exo_2 } from "next/font/google";
 
-export const spaceMono = Space_Mono({
-  weight: "400",
+export const exo2 = Exo_2({
+  weight: ["400", "500", "600", "700", "800"],
   subsets: ["latin"],
 });
