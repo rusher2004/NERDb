@@ -1,6 +1,8 @@
 "use server";
 
 import sql from "@/app/lib/db";
+import { headers } from "next/headers";
+import * as Sentry from "@sentry/nextjs";
 
 export interface SearchAllResult {
   name: string;
@@ -11,14 +13,6 @@ export interface SearchAllResult {
   type: "character" | "corporation" | "alliance";
 }
 
-export interface SearchCharactersResult {
-  name: string;
-  esiCharacterId: number;
-  esiCorporationId: number;
-  esiAllianceId?: number;
-  rank: number;
-}
-
 export async function searchAll(
   query: string
 ): Promise<{ rows?: SearchAllResult[]; error?: Error }> {
@@ -26,12 +20,23 @@ export async function searchAll(
     return { rows: [] };
   }
 
+  const formData = new FormData();
+  formData.append("query", query);
+
   const now = new Date().toISOString();
   console.log("searching for all", query, "at", now);
   console.time(query + "-" + now);
 
-  try {
-    const rows = await sql<SearchAllResult[]>`
+  return Sentry.withServerActionInstrumentation(
+    "searchAll",
+    {
+      formData: formData,
+      headers: headers(),
+      recordResponse: true,
+    },
+    async () => {
+      try {
+        const rows = await sql<SearchAllResult[]>`
     WITH matched_chars AS (
       SELECT
         name,
@@ -109,57 +114,18 @@ export async function searchAll(
     LIMIT 15;
     `;
 
-    console.timeEnd(query + "-" + now);
-    console.log(`query ${query}: ${rows.length} results`);
+        console.timeEnd(query + "-" + now);
+        console.log(`query ${query}: ${rows.length} results`);
 
-    if (!rows.length) {
-      return { rows: [] };
+        if (!rows.length) {
+          return { rows: [] };
+        }
+
+        return { rows: rows };
+      } catch (err) {
+        console.error(err);
+        throw new Error(`search failed: ${err}`);
+      }
     }
-
-    return { rows: rows };
-  } catch (err) {
-    console.error(err);
-    return { error: new Error(`An error occurred: ${err}`) };
-  }
-}
-
-export async function searchCharacters(
-  query: string
-): Promise<{ rows?: SearchCharactersResult[]; error?: Error }> {
-  if (!query) {
-    return { rows: [] };
-  }
-
-  const now = new Date().toISOString();
-  console.log("searching for character", query, "at", now);
-  console.time(query + "-" + now);
-
-  try {
-    const rows = await sql<SearchCharactersResult[]>`
-    SELECT
-      name,
-      security_status,
-      esi_character_id,
-      esi_corporation_id,
-      esi_alliance_id,
-      ts_rank(to_tsvector('simple', name), websearch_to_tsquery(${query})) rank
-    FROM
-      player.character
-    WHERE to_tsvector('simple', name) @@ websearch_to_tsquery(${query})
-    ORDER BY rank desc
-    LIMIT 10;
-  `;
-
-    console.timeEnd(query + "-" + now);
-    console.log(`query ${query}: ${rows.length} results`);
-
-    if (!rows.length) {
-      return { rows: [] };
-    }
-
-    return { rows: rows };
-  } catch (err) {
-    console.error(err);
-    return { error: new Error(`An error occurred: ${err}`) };
-  }
+  );
 }

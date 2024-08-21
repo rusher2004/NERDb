@@ -8,7 +8,8 @@ import { Character } from "@/app/lib/definitions";
 export async function getCharacter(id: number): Promise<Character | null> {
   const formData = new FormData();
   formData.append("id", id.toString());
-  return await Sentry.withServerActionInstrumentation(
+
+  return Sentry.withServerActionInstrumentation(
     "getCharacter",
     {
       formData: formData,
@@ -37,6 +38,7 @@ export async function getCharacter(id: number): Promise<Character | null> {
             esi_character_id = ${id}
           LIMIT 1
         `;
+
         return character;
       } catch (err) {
         console.error(err);

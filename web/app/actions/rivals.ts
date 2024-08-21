@@ -1,11 +1,25 @@
 "use server";
 
 import sql from "@/app/lib/db";
+import * as Sentry from "@sentry/nextjs";
 import { unstable_cache } from "next/cache";
 import { KillmailParticipant, ParticipantType } from "@/app/lib/definitions";
 
 export const getCachedTopAttackers = unstable_cache(
-  async (id: number, type: ParticipantType) => await getTopAttackers(id, type),
+  async (id: number, type: ParticipantType) => {
+    const formData = new FormData();
+    formData.append("id", id.toString());
+    formData.append("participantType", type);
+
+    return Sentry.withServerActionInstrumentation(
+      "getCachedTopAttackers",
+      {
+        formData: formData,
+        recordResponse: true,
+      },
+      () => getTopAttackers(id, type)
+    );
+  },
   ["top-attackers"],
   {
     tags: ["cached-top-attackers"],
@@ -14,7 +28,20 @@ export const getCachedTopAttackers = unstable_cache(
 );
 
 export const getCachedTopVictims = unstable_cache(
-  async (id: number, type: ParticipantType) => await getTopVictims(id, type),
+  async (id: number, type: ParticipantType) => {
+    const formData = new FormData();
+    formData.append("id", id.toString());
+    formData.append("participantType", type);
+
+    return Sentry.withServerActionInstrumentation(
+      "getCachedTopVictims",
+      {
+        formData: formData,
+        recordResponse: true,
+      },
+      () => getTopVictims(id, type)
+    );
+  },
   ["top-victims"],
   {
     tags: ["cached-top-victims"],
@@ -126,7 +153,7 @@ async function getTopVictims(
     return victims;
   } catch (err) {
     console.error(err);
-    return [];
+    throw new Error(`failed to get top victims for ${type} ${id}, ${err}`);
   }
 }
 
