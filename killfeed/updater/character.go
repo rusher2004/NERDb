@@ -66,6 +66,9 @@ func fetchCharacter(ctx context.Context, cc *ESICharacterClient, charID int32) (
 			case esi.GetCharactersCharacterIdNotFound:
 				log.Printf("character %d not found: %s\n", charID, t.Error_)
 				return db.Character{}, true, nil
+			case esi.GatewayTimeout:
+				log.Printf("gateway timeout (%d seconds): %s\n", t.Timeout, t.Error_)
+				return db.Character{}, false, ESILimitError{Remain: 0, Reset: int(t.Timeout)}
 			}
 
 			if err := checkLimits(res); err != nil {
@@ -148,7 +151,11 @@ func (u *Updater) UpdateCharacters(ctx context.Context, count int) error {
 				continue
 			}
 
-			return fmt.Errorf("error fetching character %d: %w", id, err)
+			// return fmt.Errorf("error fetching character %d: %w", id, err)
+			// there's a bunch of unknown errors being return, but aren't a result of error limiting. It's
+			// disruptive, and just works to restart. So we'll just log it, wait, and continue.
+			log.Printf("error fetching character %d: %v\n", id, err)
+			time.Sleep(30 * time.Second)
 		}
 
 		if deleted {
