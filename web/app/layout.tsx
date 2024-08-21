@@ -1,7 +1,7 @@
 import "./globals.css";
 import type { Metadata } from "next";
 import NavBar from "@/app/ui/Nav/NavBar";
-import { spaceMono } from "@/app/ui/fonts";
+import { exo2 } from "@/app/ui/fonts";
 import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 
@@ -17,7 +17,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${spaceMono.className} antialiased`}>
+      <body className={`${exo2.className} antialiased`}>
         <main className="min-h-dvh flex flex-col items-center gap-4">
           <NavBar />
           {children}
