@@ -70,7 +70,7 @@ func main() {
 	if lstnrEnable {
 		log.Println("running listener")
 		lstnr := listener.NewListener(&cl, *pool)
-		go lstnr.Listen(ctx)
+		go lstnr.Listen(ctx, 100)
 	}
 
 	if erEnable {
@@ -102,7 +102,7 @@ func main() {
 				ec := goesi.NewAPIClient(&cl, "nerdb - rusher2004@gmail.com - Fungus Amongus (in game)")
 				u := updater.NewUpdater(*pool, ec.ESI.AllianceApi, ec.ESI.CharacterApi, ec.ESI.CorporationApi)
 				for {
-					if err := u.Update(ctx, *updateType, 1000); err != nil {
+					if err := u.Update(ctx, *updateType, 100); err != nil {
 						if errors.Is(err, updater.ErrNoUnnamedCharacters{}) ||
 							errors.Is(err, updater.ErrNoUnnamedCorporations{}) ||
 							errors.Is(err, updater.ErrNoUnnamedAlliances{}) {
@@ -113,8 +113,8 @@ func main() {
 						return err
 					}
 
-					log.Println("sleeping for 1 minute")
-					time.Sleep(1 * time.Minute)
+					// log.Println("sleeping for 1 minute")
+					// time.Sleep(1 * time.Minute)
 				}
 
 			case "everef":

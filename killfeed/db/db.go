@@ -23,7 +23,15 @@ type Client struct {
 }
 
 func NewClient(ctx context.Context, connString string) (*Client, error) {
-	pool, err := pgxpool.New(ctx, connString)
+	config, err := pgxpool.ParseConfig(connString)
+	if err != nil {
+		return nil, fmt.Errorf("error parsing connection string: %w", err)
+	}
+
+	// https://github.com/jackc/pgx/issues/1847
+	config.ConnConfig.DefaultQueryExecMode = pgx.QueryExecModeCacheDescribe
+
+	pool, err := pgxpool.NewWithConfig(ctx, config)
 	if err != nil {
 		return nil, fmt.Errorf("error creating connection pool: %w", err)
 	}

@@ -1,11 +1,11 @@
 "use server";
 
-import db from "@/app/actions/db";
+import sql from "@/app/lib/db";
 import { Character } from "@/app/lib/definitions";
 
 export async function getCharacter(id: number): Promise<Character | null> {
   try {
-    const [character] = await db<Character[]>`
+    const [character] = await sql<Character[]>`
       SELECT
         birthday,
         bloodline_id,

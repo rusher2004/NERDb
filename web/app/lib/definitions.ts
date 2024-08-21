@@ -8,6 +8,11 @@ export type Alliance = {
   ticker: string;
 };
 
+export type KillmailParticipant = {
+  esiCharacterId: number;
+  numberOfKills: number;
+};
+
 export type Character = {
   birthday: Date;
   bloodlineId: number;
@@ -40,3 +45,35 @@ export type Corporation = {
   url?: string;
   warEligible?: boolean;
 };
+
+export type Faction = {
+  corporationID: number;
+  descriptionID: LocalizedMap;
+  iconID: number;
+  memberRaces: number[];
+  militiaCorporationID: number;
+  nameID: LocalizedMap;
+  shortDescriptionID: LocalizedMap;
+  sizeFactor: number;
+  solarSystemID: number;
+  uniqueName: boolean;
+  factionID: number;
+};
+
+export type LocalizedMap = {
+  de: string;
+  en: string;
+  es: string;
+  fr: string;
+  ja: string;
+  ko: string;
+  ru: string;
+  zh: string;
+  it?: string;
+};
+
+export type ParticipantType =
+  | "alliance"
+  | "character"
+  | "corporation"
+  | "faction";

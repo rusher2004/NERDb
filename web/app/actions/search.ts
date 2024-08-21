@@ -1,6 +1,6 @@
 "use server";
 
-import db from "@/app/actions/db";
+import sql from "@/app/lib/db";
 
 export interface SearchAllResult {
   name: string;
@@ -31,7 +31,7 @@ export async function searchAll(
   console.time(query + "-" + now);
 
   try {
-    const rows = await db<SearchAllResult[]>`
+    const rows = await sql<SearchAllResult[]>`
     WITH matched_chars AS (
       SELECT
         name,
@@ -112,8 +112,6 @@ export async function searchAll(
     console.timeEnd(query + "-" + now);
     console.log(`query ${query}: ${rows.length} results`);
 
-    console.log("searchAll", rows);
-
     if (!rows.length) {
       return { rows: [] };
     }
@@ -137,7 +135,7 @@ export async function searchCharacters(
   console.time(query + "-" + now);
 
   try {
-    const rows = await db<SearchCharactersResult[]>`
+    const rows = await sql<SearchCharactersResult[]>`
     SELECT
       name,
       security_status,

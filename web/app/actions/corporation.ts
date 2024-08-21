@@ -1,11 +1,11 @@
 "use server";
 
-import db from "@/app/actions/db";
+import sql from "@/app/lib/db";
 import { Corporation } from "@/app/lib/definitions";
 
 export async function getCorporation(id: number): Promise<Corporation | null> {
   try {
-    const [corporation] = await db<Corporation[]>`
+    const [corporation] = await sql<Corporation[]>`
       SELECT
         ceo_id,
         creator_id,

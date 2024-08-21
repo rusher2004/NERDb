@@ -494,6 +494,31 @@ func (c *Client) CopyESIKillmails(ctx context.Context, date string, kms []esi.Ki
 	return nil
 }
 
+func (c *Client) CopyZkillKillmails(ctx context.Context, date string, z []zkill.RedisQPackage) error {
+	esiKills := make([]esi.Killmail, len(z))
+	for i, p := range z {
+		esiKills[i] = p.ESIKill
+	}
+
+	if err := c.CopyESIKillmails(ctx, date, esiKills); err != nil {
+		return fmt.Errorf("error copying ESI killmails: %w", err)
+	}
+
+	var anyZKills [][]any
+	for _, p := range z {
+		anyZKills = append(anyZKills, []any{p.ESIKill.KillmailID, p.ZKKill.Awox, p.ZKKill.DestroyedValue, p.ZKKill.DroppedValue, p.ZKKill.FittedValue, p.ZKKill.Hash, p.ZKKill.LocationID, p.ZKKill.NPC, p.ZKKill.Points, p.ZKKill.Solo, p.ZKKill.TotalValue})
+	}
+
+	cols := []string{"esi_killmail_id", "awox", "destroyed_value", "dropped_value", "fitted_value", "hash", "location_id", "npc", "points", "solo", "total_value"}
+
+	if err := pgx.BeginFunc(ctx, c.pool, func(tx pgx.Tx) error {
+		return copyAny(ctx, tx, "killmail", "zkill_info", date, cols, anyZKills)
+	}); err != nil {
+		return fmt.Errorf("transaction error: %w", err)
+	}
+	return nil
+}
+
 // UpsertESIKillmail upserts an ESI killmail into the database.
 func (c *Client) UpsertESIKillmail(ctx context.Context, k esi.Killmail) error {
 	participants := k.UniqueParticipants()

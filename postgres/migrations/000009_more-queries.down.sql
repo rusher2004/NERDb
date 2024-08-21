@@ -1,0 +1,7 @@
+DROP INDEX attacker_esi_killmail_id_esi_character_id_index;
+
+DROP INDEX victim_esi_killmail_id_esi_character_id_index;
+
+DROP INDEX attacker_esi_character_id_index;
+
+DROP INDEX victim_esi_character_id_index;

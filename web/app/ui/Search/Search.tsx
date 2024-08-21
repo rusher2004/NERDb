@@ -49,9 +49,8 @@ export default function Search() {
       <label className="input input-bordered input-primary collapse-title flex items-center gap-2">
         <input
           type="text"
-          placeholder="Search your character to find your rival"
+          placeholder="Search to find for your rivals..."
           className="grow"
-          // className="input input-bordered input-primary w-24 md:w-auto"
           onInput={(e) => {
             debounced((e.target as HTMLInputElement).value);
           }}

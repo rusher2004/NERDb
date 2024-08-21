@@ -90,12 +90,34 @@ func (c *Client) CopyCharacters(ctx context.Context, characters []Character) err
 	return nil
 }
 
+func (c *Client) CopyDeletedCharacters(ctx context.Context, charIDs []int32) error {
+	cols := []string{"esi_character_id"}
+	var anyChars [][]any
+
+	setClauses := []string{
+		"esi_character_id",
+		"esi_deleted = true",
+	}
+
+	for _, id := range charIDs {
+		anyChars = append(anyChars, []any{id})
+	}
+
+	if err := pgx.BeginFunc(ctx, c.pool, func(tx pgx.Tx) error {
+		return copyAny(ctx, tx, "player", "character", "temp", cols, anyChars, setClauses...)
+	}); err != nil {
+		return fmt.Errorf("transaction error: %w", err)
+	}
+
+	return nil
+}
+
 // GetUnnamedCharacterIDs returns a list of character IDs where name and esi_deleted are null
 func (c *Client) GetUnnamedCharacterIDs(ctx context.Context, count int) ([]int32, error) {
 	query := `
 		SELECT esi_character_id
 		FROM player.character
-		WHERE name IS NULL AND esi_deleted IS NOT TRUE
+		WHERE (name IS NULL OR LOWER(name) = 'unknown') AND esi_deleted IS NOT TRUE
 		LIMIT $1;
 	`
 

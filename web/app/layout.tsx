@@ -1,8 +1,9 @@
-import type { Metadata } from "next";
-import { Inter } from "next/font/google";
 import "./globals.css";
-
-const inter = Inter({ subsets: ["latin"] });
+import type { Metadata } from "next";
+import NavBar from "@/app/ui/Nav/NavBar";
+import { spaceMono } from "@/app/ui/fonts";
+import { Analytics } from "@vercel/analytics/react";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 
 export const metadata: Metadata = {
   title: "New Eden Rivalry Database",
@@ -16,7 +17,14 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={inter.className}>{children}</body>
+      <body className={`${spaceMono.className} antialiased`}>
+        <main className="min-h-dvh flex flex-col items-center gap-4">
+          <NavBar />
+          {children}
+          <Analytics />
+          <SpeedInsights />
+        </main>
+      </body>
     </html>
   );
 }

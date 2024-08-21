@@ -23,11 +23,15 @@ const config: Config = {
   },
   daisyui: {
     themes: [
-      "light",
-      "dark",
-      "cupcake",
-      "bumblebee",
       {
+        photon: {
+          ...eveThemeDefaults,
+          primary: "#58A7BF",
+          secondary: "#373837",
+          accent: "#58A7BF",
+          "base-200": "#060A0C",
+          warning: "#F39058",
+        },
         amarr: {
           ...eveThemeDefaults,
           primary: "#A38264",
@@ -75,14 +79,6 @@ const config: Config = {
           accent: "#A1DDE0",
           "base-200": "#070D11",
           warning: "#C0B337",
-        },
-        photon: {
-          ...eveThemeDefaults,
-          primary: "#58A7BF",
-          secondary: "#373837",
-          accent: "#58A7BF",
-          "base-200": "#060A0C",
-          warning: "#F39058",
         },
       },
     ],

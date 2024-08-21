@@ -19,6 +19,12 @@ module.exports = {
         port: "",
         pathname: "/corporations/**",
       },
+      {
+        protocol: "https",
+        hostname: "images.evetech.net",
+        port: "",
+        pathname: "/types/**",
+      },
     ],
   },
 };

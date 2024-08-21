@@ -1,11 +1,11 @@
 "use server";
 
-import db from "@/app/actions/db";
+import sql from "@/app/lib/db";
 import { Alliance } from "@/app/lib/definitions";
 
 export async function getAlliance(id: number): Promise<Alliance | null> {
   try {
-    const [alliance] = await db<Alliance[]>`
+    const [alliance] = await sql<Alliance[]>`
       SELECT
         creator_corporation_id,
         creator_id,

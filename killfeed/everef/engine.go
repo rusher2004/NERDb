@@ -129,7 +129,7 @@ func (e *Engine) ProcessDayKillmails(ctx context.Context, day string) error {
 
 // RunCharacterUpdater reads a file of character data and inserts it into the database. A file named
 // characters.json is expected to be in the directory provided.
-func (e *Engine) RunCharacterUpdater(ctx context.Context, dir string) error {
+func (e *Engine) RunCharacterUpdater(ctx context.Context, dir string, batchSize int) error {
 	// TODO: just use the full file path. Why be cute about looking for it in the directory?
 	f, err := openFile(filepath.Join(dir, "characters.json"))
 	if err != nil {
@@ -144,7 +144,8 @@ func (e *Engine) RunCharacterUpdater(ctx context.Context, dir string) error {
 	buf := make([]byte, maxCapacity)
 	scanner.Buffer(buf, maxCapacity)
 
-	var chars []db.Character
+	chars := make([]db.Character, 0, batchSize)
+	batches := 0
 	for scanner.Scan() {
 		var c Character
 		if err := json.Unmarshal(scanner.Bytes(), &c); err != nil {
@@ -152,11 +153,18 @@ func (e *Engine) RunCharacterUpdater(ctx context.Context, dir string) error {
 		}
 
 		chars = append(chars, c.toDBCharacter())
-	}
-	log.Printf("read %d characters", len(chars))
 
-	if err := e.db.CopyCharacters(ctx, chars); err != nil {
-		return fmt.Errorf("error copying characters: %w", err)
+		if (len(chars) == batchSize || !scanner.Scan()) && len(chars) > 0 {
+			if err := e.db.CopyCharacters(ctx, chars); err != nil {
+				return fmt.Errorf("error copying characters: %w", err)
+			}
+
+			log.Printf("copied %d total", len(chars)+batchSize*batches)
+			batches++
+
+			chars = make([]db.Character, 0, batchSize)
+		}
+
 	}
 
 	return nil
@@ -270,7 +278,7 @@ func (e *Engine) Run(ctx context.Context, dir string, kind ...string) error {
 
 	if slices.Contains(kind, "character") {
 		g.Go(func() error {
-			return e.RunCharacterUpdater(ctx, dir)
+			return e.RunCharacterUpdater(ctx, dir, 10_000)
 		})
 	}
 
