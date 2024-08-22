@@ -1,3 +1,4 @@
+import clsx from "clsx";
 import Plaque from "@/app/ui/Plaque/Plaque";
 import ErrorCard from "@/app/ui/Error/Card";
 import Table from "@/app/ui/KillmailParticipants/Table";
@@ -45,20 +46,34 @@ export default async function KillmailParticipantList({
     }
     rest = data.slice(1);
 
-    return data?.length ? (
+    return (
       <div className="flex flex-col gap-8 justify-start items-center">
-        <Plaque
-          {...{
-            title: `Top ${title}`,
-            participant: top!,
-            role,
-          }}
-        />
-        <h2 className="text-2xl">{title}s</h2>
-        {rest.length ? <Table participants={rest} role={role} /> : null}
+        {data?.length ? (
+          <Plaque
+            {...{
+              title: `Top ${title}`,
+              participant: top!,
+              role,
+            }}
+          />
+        ) : (
+          <h2>No {`${title}s`} </h2>
+        )}
+        {rest.length ? (
+          <>
+            <div
+              className={clsx(
+                "divider",
+                `divider-${role === "attacker" ? "warning" : "secondary"}`,
+                `divider-${role === "attacker" ? "start" : "end"}`
+              )}
+            >
+              {title}s
+            </div>
+            <Table participants={rest} role={role} />
+          </>
+        ) : null}
       </div>
-    ) : (
-      <h2>No {`${title}s`} </h2>
     );
   } catch (err) {
     return (
