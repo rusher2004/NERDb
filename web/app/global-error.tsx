@@ -1,8 +1,8 @@
 "use client";
 
-import * as Sentry from "@sentry/nextjs";
 import NextError from "next/error";
 import { useEffect } from "react";
+import * as Sentry from "@sentry/nextjs";
 
 export default function GlobalError({
   error,
@@ -20,8 +20,7 @@ export default function GlobalError({
         definition requires a `statusCode` prop. However, since the App Router
         does not expose status codes for errors, we simply pass 0 to render a
         generic error message. */}
-        hello
-        <NextError statusCode={0} />
+        <NextError statusCode={0} title="Concordokken." withDarkMode />
       </body>
     </html>
   );
