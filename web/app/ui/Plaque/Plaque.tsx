@@ -39,7 +39,7 @@ export default async function Plaque({
         className={clsx(
           "text-center text-xl rounded-s rounded-e w-40",
           role === "attacker"
-            ? ["bg-primary text-primary-content"]
+            ? ["bg-warning text-warning-content"]
             : ["bg-secondary text-secondary-content"]
         )}
       >
