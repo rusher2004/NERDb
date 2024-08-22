@@ -7,18 +7,23 @@ import { KillmailParticipant, ParticipantType } from "@/app/lib/definitions";
 
 export const getCachedTopAttackers = unstable_cache(
   async (id: number, type: ParticipantType) => {
-    const formData = new FormData();
-    formData.append("id", id.toString());
-    formData.append("participantType", type);
+    try {
+      const formData = new FormData();
+      formData.append("id", id.toString());
+      formData.append("participantType", type);
 
-    return Sentry.withServerActionInstrumentation(
-      "getCachedTopAttackers",
-      {
-        formData: formData,
-        recordResponse: true,
-      },
-      () => getTopAttackers(id, type)
-    );
+      return Sentry.withServerActionInstrumentation(
+        "getCachedTopAttackers",
+        {
+          formData: formData,
+          recordResponse: true,
+        },
+        () => getTopAttackers(id, type)
+      );
+    } catch (err) {
+      console.error(err);
+      throw err;
+    }
   },
   ["top-attackers"],
   {
@@ -29,18 +34,23 @@ export const getCachedTopAttackers = unstable_cache(
 
 export const getCachedTopVictims = unstable_cache(
   async (id: number, type: ParticipantType) => {
-    const formData = new FormData();
-    formData.append("id", id.toString());
-    formData.append("participantType", type);
+    try {
+      const formData = new FormData();
+      formData.append("id", id.toString());
+      formData.append("participantType", type);
 
-    return Sentry.withServerActionInstrumentation(
-      "getCachedTopVictims",
-      {
-        formData: formData,
-        recordResponse: true,
-      },
-      () => getTopVictims(id, type)
-    );
+      return Sentry.withServerActionInstrumentation(
+        "getCachedTopVictims",
+        {
+          formData: formData,
+          recordResponse: true,
+        },
+        () => getTopVictims(id, type)
+      );
+    } catch (err) {
+      console.error(err);
+      throw err;
+    }
   },
   ["top-victims"],
   {
@@ -106,7 +116,7 @@ async function getTopAttackers(
     return attackers;
   } catch (err) {
     console.error(err);
-    return [];
+    throw new Error(`failed to get top attackers for ${type} ${id}, ${err}`);
   }
 }
 
