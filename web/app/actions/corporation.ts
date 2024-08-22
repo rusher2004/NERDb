@@ -1,7 +1,6 @@
 "use server";
 
 import sql from "@/app/lib/db";
-import { headers } from "next/headers";
 import * as Sentry from "@sentry/nextjs";
 import { Corporation } from "@/app/lib/definitions";
 
@@ -13,7 +12,6 @@ export async function getCorporation(id: number): Promise<Corporation | null> {
     "getCorporation",
     {
       formData: formData,
-      headers: headers(),
       recordResponse: true,
     },
     async () => {

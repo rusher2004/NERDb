@@ -1,9 +1,10 @@
 export type Alliance = {
   creatorCorporationID: number;
-  creatorID: number;
+  creatorId: number;
   dateFounded: Date;
-  executorCorporationID?: number;
-  factionID?: number;
+  esiAllianceId: number;
+  executorCorporationId?: number;
+  factionId?: number;
   name: string;
   ticker: string;
 };
@@ -71,6 +72,8 @@ export type LocalizedMap = {
   zh: string;
   it?: string;
 };
+
+export type Participant = Alliance | Character | Corporation;
 
 export type ParticipantType =
   | "alliance"
