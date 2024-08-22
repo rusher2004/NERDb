@@ -2,10 +2,10 @@ import { Suspense } from "react";
 import { unstable_cache } from "next/cache";
 import Loading from "@/app/ui/Loading/Loading";
 import { getAlliance } from "@/app/actions/alliance";
+import BannerCard from "@/app/ui/Rivalries/BannerCard";
 import { getCharacter } from "@/app/actions/character";
 import { ParticipantType } from "@/app/lib/definitions";
 import { getCorporation } from "@/app/actions/corporation";
-import BannerCard from "@/app/ui/Rivalries/BannerCard";
 import KillmailParticipants from "@/app/ui/KillmailParticipants/ParticipantList";
 
 export default async function SubjectView({
