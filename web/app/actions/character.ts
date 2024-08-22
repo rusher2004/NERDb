@@ -1,7 +1,6 @@
 "use server";
 
 import sql from "@/app/lib/db";
-import { headers } from "next/headers";
 import * as Sentry from "@sentry/nextjs";
 import { Character } from "@/app/lib/definitions";
 
@@ -13,7 +12,6 @@ export async function getCharacter(id: number): Promise<Character | null> {
     "getCharacter",
     {
       formData: formData,
-      headers: headers(),
       recordResponse: true,
     },
     async () => {
