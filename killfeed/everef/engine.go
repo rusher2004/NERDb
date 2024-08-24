@@ -236,6 +236,7 @@ func (e *Engine) RunKillmails(ctx context.Context, hc HTTPClient) error {
 
 	today := time.Now()
 	tomorrow := today.AddDate(0, 0, 1)
+	toProcess := []string{}
 	for k, v := range totals["everef"] {
 		// do not run today or tomorrow's dates. Depending on what time this is running, EveRef may not
 		// yet have the data, and it would throw a 404.
@@ -246,22 +247,48 @@ func (e *Engine) RunKillmails(ctx context.Context, hc HTTPClient) error {
 
 		if _, ok := totals["db"][k]; !ok {
 			log.Printf("missing key %s in db totals", k)
-			if err := e.ProcessDayKillmails(ctx, k); err != nil {
-				return fmt.Errorf("error processing day %s: %w", k, err)
-			}
+			toProcess = append(toProcess, k)
 			continue
 		}
 
 		if v != totals["db"][k] {
 			log.Printf("mismatched value for key %s: %d != %d", k, v, totals["db"][k])
-			if err := e.ProcessDayKillmails(ctx, k); err != nil {
-				return fmt.Errorf("error processing day %s: %w", k, err)
-			}
+			toProcess = append(toProcess, k)
 		}
 
 		if v == totals["db"][k] {
 			log.Printf("day %s is up to date with %d killmails", k, v)
 		}
+	}
+
+	n := new(errgroup.Group)
+
+	first, second := toProcess[:len(toProcess)/2], toProcess[len(toProcess)/2:]
+
+	n.Go(func() error {
+		for i, f := range first {
+			log.Printf("processing %s (%d/%d)\n", f, i+1, len(first))
+			if err := e.ProcessDayKillmails(ctx, f); err != nil {
+				return fmt.Errorf("error processing day %s: %w", f, err)
+			}
+		}
+
+		return nil
+	})
+
+	n.Go(func() error {
+		for i, s := range second {
+			log.Printf("processing %s (%d/%d)\n", s, i+1, len(second))
+			if err := e.ProcessDayKillmails(ctx, s); err != nil {
+				return fmt.Errorf("error processing day %s: %w", s, err)
+			}
+		}
+
+		return nil
+	})
+
+	if err := n.Wait(); err != nil {
+		return fmt.Errorf("error processing killmails: %w", err)
 	}
 
 	return nil
