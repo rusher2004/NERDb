@@ -38,7 +38,7 @@ CREATE TYPE player.gender AS ENUM ('female', 'male', '');
 
 CREATE TABLE IF NOT EXISTS player.character (
   esi_character_id integer NOT NULL PRIMARY KEY,
-  alliance_id INTEGER,
+  esi_alliance_id INTEGER,
   birthday TIMESTAMPTZ,
   bloodline_id INTEGER,
   corporation_id INTEGER,
@@ -59,7 +59,7 @@ UPDATE ON player.character FOR EACH ROW EXECUTE FUNCTION updated_timestamp();
 
 CREATE TABLE IF NOT EXISTS player.corporation (
   esi_corporation_id integer NOT NULL PRIMARY KEY,
-  alliance_id INTEGER,
+  esi_alliance_id INTEGER,
   ceo_id INTEGER,
   creator_id INTEGER,
   date_founded TIMESTAMPTZ,
