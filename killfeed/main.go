@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"flag"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -31,7 +32,7 @@ func main() {
 	updaterSrc := updateCmd.String("src", "", "source")
 	updateFileDir := updateCmd.String("dir", "", "dir source")
 	// updateDate := updateCmd.String("date", time.Now().Format("2006-02-01"), "date source")
-	updateType := updateCmd.String("type", "", "character, corporation, or alliance")
+	updateType := updateCmd.String("type", "", "character, corporation, alliance, or faction")
 	updateEnable := false
 
 	if len(os.Args) < 2 {
@@ -100,7 +101,13 @@ func main() {
 			switch *updaterSrc {
 			case "esi":
 				ec := goesi.NewAPIClient(&cl, "nerdb - rusher2004@gmail.com - Fungus Amongus (in game)")
-				u := updater.NewUpdater(*pool, ec.ESI.AllianceApi, ec.ESI.CharacterApi, ec.ESI.CorporationApi)
+				u := updater.NewUpdater(*pool, ec.ESI.AllianceApi, ec.ESI.CharacterApi, ec.ESI.CorporationApi, ec.ESI.UniverseApi)
+				if *updateType == "faction" {
+					if err := u.UpdateFactions(ctx); err != nil {
+						return fmt.Errorf("error updating factions: %w", err)
+					}
+					return nil
+				}
 				for {
 					if err := u.Update(ctx, *updateType, 100); err != nil {
 						if errors.Is(err, updater.ErrNoUnnamedCharacters{}) ||

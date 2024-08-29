@@ -15,7 +15,16 @@ $$ LANGUAGE PLPGSQL;
 CREATE SCHEMA IF NOT EXISTS universe;
 
 CREATE TABLE IF NOT EXISTS universe.faction (
-  esi_faction_id integer PRIMARY KEY,
+  esi_faction_id integer NOT NULL PRIMARY KEY,
+  corporation_id INTEGER,
+  description TEXT NOT NULL,
+  is_unique BOOLEAN NOT NULL,
+  militia_corporation_id INTEGER,
+  name TEXT NOT NULL,
+  size_factor NUMERIC(17, 2) NOT NULL,
+  solar_system_id INTEGER,
+  station_count INTEGER NOT NULL,
+  station_system_count INTEGER NOT NULL,
   created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 );
@@ -121,15 +130,15 @@ CREATE TABLE IF NOT EXISTS killmail.esi_killmail (
   updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
 
   -- victim info
-  esi_character_id integer REFERENCES player.character(esi_character_id),
-  esi_alliance_id integer REFERENCES player.alliance(esi_alliance_id),
-  esi_corporation_id integer REFERENCES player.corporation(esi_corporation_id),
-  esi_faction_id integer REFERENCES universe.faction(esi_faction_id),
-  damage_taken integer NOT NULL,
+  esi_character_id integer,
+  esi_alliance_id integer,
+  esi_corporation_id integer,
+  esi_faction_id integer,
+  damage_taken integer,
   position_x double precision,
   position_y double precision,
   position_z double precision,
-  ship_type_id integer NOT NULL
+  ship_type_id integer
 );
 
 SELECT create_hypertable('killmail.esi_killmail', by_range('time'));
@@ -169,12 +178,12 @@ CREATE OR REPLACE TRIGGER killmail_zkill_info_updated_trigger BEFORE
 UPDATE ON killmail.zkill_info FOR EACH ROW EXECUTE FUNCTION updated_timestamp();
 
 CREATE TABLE IF NOT EXISTS killmail.attacker (
-  esi_character_id integer REFERENCES player.character(esi_character_id),
+  esi_character_id integer,
   esi_killmail_id integer NOT NULL,
   damage_done integer NOT NULL,
-  esi_alliance_id integer REFERENCES player.alliance(esi_alliance_id),
-  esi_corporation_id integer REFERENCES player.corporation(esi_corporation_id),
-  esi_faction_id integer REFERENCES universe.faction(esi_faction_id),
+  esi_alliance_id integer,
+  esi_corporation_id integer,
+  esi_faction_id integer,
   final_blow boolean NOT NULL,
   security_status double precision,
   ship_type_id integer,

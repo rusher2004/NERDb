@@ -48,11 +48,13 @@ Run `go run killfeed/main.go everef`
 
 Killmail data contains only IDs, and CCP's ESI API does not provide bulk operations to get multiple entity's info. This is a two step process to load bulk data, and then update more current data.
 
-1. Load bulk data from Eve Ref
+1. Insert Factions From ESI first (it's essentially static data)
+   1. Run `go run killfeed/main.go updater --src esi --type faction`
+2. Load bulk data from Eve Ref
    1. Download the [latest bulk dataset](https://data.everef.net/characters-corporations-alliances/backfills/)
    2. Unzip the file
    3. Run `go run killfeed/main.go updater --src everef --dir $PATH_TO_UNZIPPED_FILE`
-2. Run ESI updater for the remaining values
+3. Run ESI updater for the remaining values
    1. Run `go run killfeed/main.go updater --src esi`
 
 > TODO:

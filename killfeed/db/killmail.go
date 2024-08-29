@@ -18,18 +18,6 @@ type attackerWithKillmailID struct {
 	esi.KillmailAttacker
 }
 
-type victimWithKillmailID struct {
-	killmailID int
-	esi.KillmailVictim
-}
-
-// commenting out but leaving in, may figure out soon how to efficiently store this.
-// type victimItemWithParentID struct {
-// 	esi.KillmailVictimItem
-// 	parentType string
-// 	parentID   int
-// }
-
 // toAnySlice converts a slice of any type to a slice of any type https://go.dev/doc/faq#convert_slice_of_interface
 func toAnySlice[T any](i []T) []any {
 	out := make([]any, len(i))
@@ -112,10 +100,47 @@ func copyAttackers(ctx context.Context, tx pgx.Tx, date string, attackers []atta
 func copyKillmails(ctx context.Context, tx pgx.Tx, date string, kms []esi.Killmail) error {
 	var anyKms [][]any
 	for _, k := range kms {
-		anyKms = append(anyKms, []any{k.KillmailID, k.KillmailTime, k.MoonID, k.SolarSystemID, k.WarID})
+		var x, y, z *float64
+		if k.Victim.Position != nil {
+			x = &k.Victim.Position.X
+			y = &k.Victim.Position.Y
+			z = &k.Victim.Position.Z
+		}
+
+		anyKms = append(anyKms, []any{
+			k.KillmailID,
+			k.KillmailTime,
+			k.MoonID,
+			k.SolarSystemID,
+			k.WarID,
+			k.Victim.CharacterID,
+			k.Victim.CorporationID,
+			k.Victim.AllianceID,
+			k.Victim.FactionID,
+			k.Victim.DamageTaken,
+			x,
+			y,
+			z,
+			k.Victim.ShipTypeID,
+		})
 	}
 
-	cols := []string{"esi_killmail_id", "time", "moon_id", "solar_system_id", "war_id"}
+	cols := []string{
+		"esi_killmail_id",
+		"time",
+		"moon_id",
+		"solar_system_id",
+		"war_id",
+		"esi_character_id",
+		"esi_corporation_id",
+		"esi_alliance_id",
+		"esi_faction_id",
+		"damage_taken",
+		"position_x",
+		"position_y",
+		"position_z",
+		"ship_type_id",
+	}
 
 	return copyAny(ctx, tx, "killmail", "esi_killmail", date, cols, anyKms)
 }
@@ -173,64 +198,6 @@ func copyParticipants(ctx context.Context, tx pgx.Tx, date string, kms []esi.Kil
 func copyToTempTable(ctx context.Context, p pgx.Tx, schema, table string, columnNames []string, rowSrc pgx.CopyFromSource) (int64, error) {
 	return p.CopyFrom(ctx, pgx.Identifier{schema + "_" + table}, columnNames, rowSrc)
 }
-
-// copyVictims uses copyAny to copy victims into the database.
-func copyVictims(ctx context.Context, tx pgx.Tx, date string, victims []victimWithKillmailID) error {
-	// var allVictimItems []victimItemWithParentID
-	// for _, v := range victims {
-	// 	for _, i := range v.Items {
-	// 		allVictimItems = append(allVictimItems, victimItemWithParentID{i, "victim", int(v.CharacterID.Int32)})
-	// 	}
-	// }
-
-	var anyVictims [][]any
-	for _, v := range victims {
-		var x, y, z *float64
-		if v.Position != nil {
-			x = &v.Position.X
-			y = &v.Position.Y
-			z = &v.Position.Z
-		}
-		anyVictims = append(anyVictims, []any{v.killmailID, v.CharacterID, v.CorporationID, v.AllianceID, v.FactionID, v.ShipTypeID, v.DamageTaken, x, y, z})
-	}
-
-	cols := []string{"esi_killmail_id", "esi_character_id", "esi_corporation_id", "esi_alliance_id", "esi_faction_id", "ship_type_id", "damage_taken", "position_x", "position_y", "position_z"}
-
-	if err := copyAny(ctx, tx, "killmail", "victim", date, cols, anyVictims); err != nil {
-		return fmt.Errorf("error copying victim: %w", err)
-	}
-
-	// if err := copyVictimItems(ctx, tx, date, allVictimItems); err != nil {
-	// 	return fmt.Errorf("error copying victim items: %w", err)
-	// }
-
-	return nil
-}
-
-// func copyVictimItems(ctx context.Context, tx pgx.Tx, date string, items []victimItemWithParentID) error {
-// 	var anyItems [][]any
-// 	for _, i := range items {
-// 		anyItems = append(anyItems, []any{i.parentID, i.parentType, i.Flag, i.ItemTypeID, i.QuantityDestroyed, i.QuantityDropped, i.Singleton})
-// 	}
-
-// 	cols := []string{"parent_id", "parent_type", "flag", "item_type_id", "quantity_destroyed", "quantity_dropped", "singleton"}
-
-// 	if err := copyAny(ctx, tx, "killmail", "victim_item", date, cols, anyItems); err != nil {
-// 		return fmt.Errorf("error copying victim items: %w", err)
-// 	}
-
-// 	// need to figure out how to reconcile nested items later. We need the victim_item_id of its
-// 	// parent to insert a nested item, which is not available until the parent item is inserted.
-// 	// for _, i := range items {
-// 	// 	if i.Items != nil {
-// 	// 		if err := copyVictimItems(ctx, tx, date, parentID, "item", *i.Items); err != nil {
-// 	// 			return fmt.Errorf("error copying victim item details: %w", err)
-// 	// 		}
-// 	// 	}
-// 	// }
-
-// 	return nil
-// }
 
 // createTempTable creates a temporary table in the database, using `fromSchema.fromTable` as the
 // model for the temp table using LIKE.
@@ -319,31 +286,6 @@ func insertVictim(ctx context.Context, p DBPool, killmailID int, v esi.KillmailV
 
 	return nil
 }
-
-// func insertVictimItems(ctx context.Context, p DBPool, parentID int, parentType string, items []esi.KillmailVictimItem) error {
-// 	query := `
-// 	INSERT INTO killmail.victim_item(parent_id, parent_type, flag, item_type_id, quantity_destroyed, quantity_dropped, singleton)
-// 	VALUES ($1, $2, $3, $4, $5, $6, $7)
-// 	RETURNING victim_item_id;
-// 	`
-
-// 	for _, i := range items {
-// 		row := p.QueryRow(ctx, query, parentID, parentType, i.Flag, i.ItemTypeID, i.QuantityDestroyed, i.QuantityDropped, i.Singleton)
-
-// 		var victimItemID int
-// 		if err := row.Scan(&victimItemID); err != nil {
-// 			return fmt.Errorf("error inserting victim item: %w", err)
-// 		}
-
-// 		if i.Items != nil {
-// 			if err := insertVictimItems(ctx, p, victimItemID, "item", *i.Items); err != nil {
-// 				return fmt.Errorf("error inserting victim item details: %w", err)
-// 			}
-// 		}
-// 	}
-
-// 	return nil
-// }
 
 // upsertEntities upserts entities into the player database, where entityTypes is alliance, character
 // or corporation. On conflict, nothing is done because we are only inserting a single column here.
@@ -460,13 +402,10 @@ func upsertZkillInfo(ctx context.Context, p DBPool, killmailID int, z zkill.ZKKi
 // temp table, then inserting into the persistent table.
 func (c *Client) CopyESIKillmails(ctx context.Context, date string, kms []esi.Killmail) error {
 	var allAttackers []attackerWithKillmailID
-	var allVictims []victimWithKillmailID
 	for _, k := range kms {
 		for _, a := range k.Attackers {
 			allAttackers = append(allAttackers, attackerWithKillmailID{int(k.KillmailID), a})
 		}
-
-		allVictims = append(allVictims, victimWithKillmailID{int(k.KillmailID), k.Victim})
 	}
 
 	if err := pgx.BeginFunc(ctx, c.pool, func(tx pgx.Tx) error {
@@ -480,10 +419,6 @@ func (c *Client) CopyESIKillmails(ctx context.Context, date string, kms []esi.Ki
 
 		if err := copyAttackers(ctx, tx, date, allAttackers); err != nil {
 			return fmt.Errorf("error copying attackers: %w", err)
-		}
-
-		if err := copyVictims(ctx, tx, date, allVictims); err != nil {
-			return fmt.Errorf("error copying victims: %w", err)
 		}
 
 		return nil

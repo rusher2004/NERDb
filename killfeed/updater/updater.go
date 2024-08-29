@@ -29,6 +29,10 @@ type ESICorporationClient interface {
 	GetCorporationsCorporationId(ctx context.Context, corporationId int32, localVarOptionals *esi.GetCorporationsCorporationIdOpts) (esi.GetCorporationsCorporationIdOk, *http.Response, error)
 }
 
+type ESIUniverseClient interface {
+	GetUniverseFactions(ctx context.Context, localVarOptionals *esi.GetUniverseFactionsOpts) ([]esi.GetUniverseFactions200Ok, *http.Response, error)
+}
+
 type ESILimitError struct {
 	Remain int
 	Reset  int
@@ -70,19 +74,33 @@ func (e ErrNoUnnamedCorporations) Error() string {
 	return "no unnamed corporations"
 }
 
+type ErrNoUnnamedFactions struct{}
+
+func (e ErrNoUnnamedFactions) Error() string {
+	return "no unnamed factions"
+}
+
 type Updater struct {
 	db      db.Client
 	esiAlly *ESIAllianceClient
 	esiChar *ESICharacterClient
 	esiCorp *ESICorporationClient
+	esiUni  *ESIUniverseClient
 }
 
-func NewUpdater(db db.Client, ally ESIAllianceClient, char ESICharacterClient, corp ESICorporationClient) *Updater {
+func NewUpdater(
+	db db.Client,
+	ally ESIAllianceClient,
+	char ESICharacterClient,
+	corp ESICorporationClient,
+	uni ESIUniverseClient,
+) *Updater {
 	return &Updater{
 		db:      db,
 		esiAlly: &ally,
 		esiChar: &char,
 		esiCorp: &corp,
+		esiUni:  &uni,
 	}
 }
 
@@ -94,6 +112,8 @@ func (u *Updater) Update(ctx context.Context, kind string, limit int) error {
 		return u.UpdateCharacters(ctx, limit)
 	case "corporation":
 		return u.UpdateCorporations(ctx, limit)
+	case "faction":
+		return u.UpdateFactions(ctx)
 	default:
 		return fmt.Errorf("unknown type: %s", kind)
 	}
