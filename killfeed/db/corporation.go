@@ -10,9 +10,9 @@ import (
 )
 
 type Corporation struct {
-	AllianceID    null.JSONNullInt32  `db:"esi_alliance_id"`
+	AllianceID    null.JSONNullInt32  `db:"alliance_id"`
 	CEOID         null.JSONNullInt32  `db:"ceo_id"`
-	CorporationID int32               `db:"esi_corporation_id"`
+	CorporationID int32               `db:"corporation_id"`
 	CreatorID     null.JSONNullInt32  `db:"creator_id"`
 	DateFounded   time.Time           `db:"date_founded"`
 	Description   string              `db:"description"`
@@ -30,8 +30,8 @@ type Corporation struct {
 
 func (c *Client) CopyCorporations(ctx context.Context, corps []Corporation) error {
 	cols := []string{
-		"esi_corporation_id",
-		"esi_alliance_id",
+		"corporation_id",
+		"alliance_id",
 		"ceo_id",
 		"creator_id",
 		"date_founded",
@@ -49,8 +49,8 @@ func (c *Client) CopyCorporations(ctx context.Context, corps []Corporation) erro
 	var anyCorps [][]any
 
 	setClauses := []string{
-		"esi_corporation_id",
-		"esi_alliance_id = EXCLUDED.esi_alliance_id",
+		"corporation_id",
+		"alliance_id = EXCLUDED.alliance_id",
 		"ceo_id = EXCLUDED.ceo_id",
 		"creator_id = EXCLUDED.creator_id",
 		"date_founded = EXCLUDED.date_founded",
@@ -97,9 +97,9 @@ func (c *Client) CopyCorporations(ctx context.Context, corps []Corporation) erro
 
 func (c *Client) GetUnnamedCorporationIDs(ctx context.Context, count int) ([]int32, error) {
 	query := `
-		SELECT esi_corporation_id
+		SELECT corporation_id
 		FROM player.corporation
-		WHERE name IS NULL AND esi_corporation_id <> 0
+		WHERE name IS NULL AND corporation_id <> 0
 		LIMIT $1;
 	`
 
@@ -125,7 +125,7 @@ func (c *Client) UpdateCorporation(ctx context.Context, corp Corporation) error 
 	query := `
 		UPDATE player.corporation
 		SET
-			esi_alliance_id = $2,
+			alliance_id = $2,
 			ceo_id = $3,
 			creator_id = $4,
 			date_founded = $5,
@@ -139,7 +139,7 @@ func (c *Client) UpdateCorporation(ctx context.Context, corp Corporation) error 
 			ticker = $13,
 			url = $14,
 			war_eligible = $15
-		WHERE esi_corporation_id = $1;
+		WHERE corporation_id = $1;
 	`
 
 	if _, err := c.pool.Exec(ctx, query,

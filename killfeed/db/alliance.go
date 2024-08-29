@@ -12,7 +12,7 @@ import (
 )
 
 type Alliance struct {
-	AllianceID    int32              `db:"esi_alliance_id"`
+	AllianceID    int32              `db:"alliance_id"`
 	CreatorCorpID int32              `db:"creator_corporation_id"`
 	CreatorID     int32              `db:"creator_id"`
 	DateFounded   time.Time          `db:"date_founded"`
@@ -25,7 +25,7 @@ type Alliance struct {
 // CopyAlliances upserts the given allianeces into the database using the copyAny function.
 func (c *Client) CopyAlliances(ctx context.Context, alliances []Alliance) error {
 	cols := []string{
-		"esi_alliance_id",
+		"alliance_id",
 		"creator_corporation_id",
 		"creator_id",
 		"date_founded",
@@ -37,7 +37,7 @@ func (c *Client) CopyAlliances(ctx context.Context, alliances []Alliance) error 
 	var anyAlliances [][]any
 
 	setClauses := []string{
-		"esi_alliance_id",
+		"alliance_id",
 		"creator_corporation_id = EXCLUDED.creator_corporation_id",
 		"creator_id = EXCLUDED.creator_id",
 		"date_founded = EXCLUDED.date_founded",
@@ -90,7 +90,7 @@ func (c *Client) GetMissingAllianceIDs(ctx context.Context, ids []int32) ([]int3
 		WHERE
 			missing NOT IN
 			(SELECT
-				esi_alliance_id
+				alliance_id
 			FROM
 				player.alliance
 			);
@@ -120,7 +120,7 @@ func (c *Client) GetMissingAllianceIDs(ctx context.Context, ids []int32) ([]int3
 func (c *Client) GetUnnamedAllianceIDs(ctx context.Context, count int) ([]int32, error) {
 	query := `
 		SELECT
-			esi_alliance_id
+			alliance_id
 		FROM
 			player.alliance
 		WHERE
@@ -153,7 +153,7 @@ func (c *Client) InsertAlliance(ctx context.Context, alliance Alliance) error {
 	query := `
 		INSERT INTO player.alliance
 		(
-			esi_alliance_id,
+			alliance_id,
 			creator_corporation_id,
 			creator_id,
 			date_founded,
@@ -181,7 +181,7 @@ func (c *Client) InsertAlliance(ctx context.Context, alliance Alliance) error {
 	return nil
 }
 
-// UpdateAlliance updates the given alliance in the database, using the esi_alliance_id as the key.
+// UpdateAlliance updates the given alliance in the database, using the alliance_id as the key.
 func (c *Client) UpdateAlliance(ctx context.Context, alliance Alliance) error {
 	query := `
 		UPDATE player.alliance
@@ -194,7 +194,7 @@ func (c *Client) UpdateAlliance(ctx context.Context, alliance Alliance) error {
 			name = $7,
 			ticker = $8
 		WHERE
-			esi_alliance_id = $1;
+			alliance_id = $1;
 	`
 
 	if _, err := c.pool.Exec(ctx, query,

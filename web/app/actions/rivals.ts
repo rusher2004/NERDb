@@ -77,37 +77,37 @@ async function getTopAttackers(
     const whereColumn = () => {
       switch (type) {
         case "alliance":
-          return sql`kv.esi_alliance_id = ${id}`;
+          return sql`kv.alliance_id = ${id}`;
         case "character":
-          return sql`kv.esi_character_id = ${id}`;
+          return sql`kv.character_id = ${id}`;
         case "corporation":
-          return sql`kv.esi_corporation_id = ${id}`;
+          return sql`kv.corporation_id = ${id}`;
         case "faction":
-          return sql`kv.esi_faction_id = ${id}`;
+          return sql`kv.faction_id = ${id}`;
       }
     };
 
     const attackers = await sql<KillmailParticipant[]>`
       WITH killmails AS (
         SELECT DISTINCT
-          ka.esi_character_id attacker_id,
-          km.esi_killmail_id
+          ka.character_id attacker_id,
+          km.killmail_id
         FROM
           player.character vc
-          JOIN killmail.victim kv ON kv.esi_character_id = vc.esi_character_id
-          JOIN killmail.esi_killmail km ON km.esi_killmail_id = kv.esi_killmail_id
-          JOIN killmail.attacker ka ON ka.esi_killmail_id = km.esi_killmail_id
-          JOIN player.character ac ON ac.esi_character_id = ka.esi_character_id
+          JOIN killmail.victim kv ON kv.character_id = vc.character_id
+          JOIN killmail.killmail km ON km.killmail_id = kv.killmail_id
+          JOIN killmail.attacker ka ON ka.killmail_id = km.killmail_id
+          JOIN player.character ac ON ac.character_id = ka.character_id
         WHERE
           ${whereColumn()}
       )
       SELECT
-        attacker_id AS esi_character_id,
+        attacker_id AS character_id,
         COUNT(*)::int AS number_of_kills
       FROM
         killmails
       GROUP BY
-        esi_character_id
+        character_id
       ORDER BY
         number_of_kills DESC
       LIMIT 5;
@@ -128,34 +128,34 @@ async function getTopVictims(
     const whereColumn = () => {
       switch (type) {
         case "alliance":
-          return sql`ka.esi_alliance_id = ${id}`;
+          return sql`ka.alliance_id = ${id}`;
         case "character":
-          return sql`ka.esi_character_id = ${id}`;
+          return sql`ka.character_id = ${id}`;
         case "corporation":
-          return sql`ka.esi_corporation_id = ${id}`;
+          return sql`ka.corporation_id = ${id}`;
         case "faction":
-          return sql`ka.esi_faction_id = ${id}`;
+          return sql`ka.faction_id = ${id}`;
       }
     };
 
     const victims = await sql<KillmailParticipant[]>`
       WITH killmails AS (
         SELECT DISTINCT
-          kv.esi_character_id victim_id,
-          km.esi_killmail_id
+          kv.character_id victim_id,
+          km.killmail_id
         FROM player.character ac
-          JOIN killmail.attacker ka ON ka.esi_character_id = ac.esi_character_id
-          JOIN killmail.esi_killmail km ON km.esi_killmail_id = ka.esi_killmail_id
-          JOIN killmail.victim kv ON kv.esi_killmail_id = km.esi_killmail_id
-          JOIN player.character vc ON vc.esi_character_id = kv.esi_character_id
+          JOIN killmail.attacker ka ON ka.character_id = ac.character_id
+          JOIN killmail.killmail km ON km.killmail_id = ka.killmail_id
+          JOIN killmail.victim kv ON kv.killmail_id = km.killmail_id
+          JOIN player.character vc ON vc.character_id = kv.character_id
         WHERE 
           ${whereColumn()}
       )
       SELECT 
-        victim_id AS esi_character_id,
+        victim_id AS character_id,
         COUNT(*)::int AS number_of_kills
       FROM killmails
-      GROUP BY esi_character_id
+      GROUP BY character_id
       ORDER BY number_of_kills DESC
       LIMIT 5;
     `;

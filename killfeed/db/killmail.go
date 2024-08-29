@@ -91,7 +91,7 @@ func copyAttackers(ctx context.Context, tx pgx.Tx, date string, attackers []atta
 		anyAttackers = append(anyAttackers, []any{a.killmailID, a.CharacterID, a.CorporationID, a.AllianceID, a.FactionID, a.DamageDone, a.FinalBlow, a.SecurityStatus, a.ShipTypeID, a.WeaponTypeID})
 	}
 
-	cols := []string{"esi_killmail_id", "esi_character_id", "esi_corporation_id", "esi_alliance_id", "esi_faction_id", "damage_done", "final_blow", "security_status", "ship_type_id", "weapon_type_id"}
+	cols := []string{"killmail_id", "character_id", "corporation_id", "alliance_id", "faction_id", "damage_done", "final_blow", "security_status", "ship_type_id", "weapon_type_id"}
 
 	return copyAny(ctx, tx, "killmail", "attacker", date, cols, anyAttackers)
 }
@@ -126,15 +126,15 @@ func copyKillmails(ctx context.Context, tx pgx.Tx, date string, kms []esi.Killma
 	}
 
 	cols := []string{
-		"esi_killmail_id",
+		"killmail_id",
 		"time",
 		"moon_id",
 		"solar_system_id",
 		"war_id",
-		"esi_character_id",
-		"esi_corporation_id",
-		"esi_alliance_id",
-		"esi_faction_id",
+		"character_id",
+		"corporation_id",
+		"alliance_id",
+		"faction_id",
 		"damage_taken",
 		"position_x",
 		"position_y",
@@ -142,7 +142,7 @@ func copyKillmails(ctx context.Context, tx pgx.Tx, date string, kms []esi.Killma
 		"ship_type_id",
 	}
 
-	return copyAny(ctx, tx, "killmail", "esi_killmail", date, cols, anyKms)
+	return copyAny(ctx, tx, "killmail", "killmail", date, cols, anyKms)
 }
 
 // copyParticipants uses copyAny to copy participants into the database.
@@ -167,28 +167,28 @@ func copyParticipants(ctx context.Context, tx pgx.Tx, date string, kms []esi.Kil
 		}
 	}
 
-	var anyChars [][]any
-	for _, c := range charIDs {
-		anyChars = append(anyChars, []any{c})
+	var anyAlliances [][]any
+	for _, a := range allianceIDs {
+		anyAlliances = append(anyAlliances, []any{a})
 	}
-	if err := copyAny(ctx, tx, "player", "character", date, []string{"esi_character_id"}, anyChars); err != nil {
-		return fmt.Errorf("error copying characters: %w", err)
+	if err := copyAny(ctx, tx, "player", "alliance", date, []string{"alliance_id"}, anyAlliances); err != nil {
+		return fmt.Errorf("error copying alliances: %w", err)
 	}
 
 	var anyCorps [][]any
 	for _, c := range corpIDs {
 		anyCorps = append(anyCorps, []any{c})
 	}
-	if err := copyAny(ctx, tx, "player", "corporation", date, []string{"esi_corporation_id"}, anyCorps); err != nil {
+	if err := copyAny(ctx, tx, "player", "corporation", date, []string{"corporation_id"}, anyCorps); err != nil {
 		return fmt.Errorf("error copying corporations: %w", err)
 	}
 
-	var anyAlliances [][]any
-	for _, a := range allianceIDs {
-		anyAlliances = append(anyAlliances, []any{a})
+	var anyChars [][]any
+	for _, c := range charIDs {
+		anyChars = append(anyChars, []any{c})
 	}
-	if err := copyAny(ctx, tx, "player", "alliance", date, []string{"esi_alliance_id"}, anyAlliances); err != nil {
-		return fmt.Errorf("error copying alliances: %w", err)
+	if err := copyAny(ctx, tx, "player", "character", date, []string{"character_id"}, anyChars); err != nil {
+		return fmt.Errorf("error copying characters: %w", err)
 	}
 
 	return nil
@@ -218,7 +218,7 @@ func createTempTable(ctx context.Context, tx pgx.Tx, fromSchema, fromTable, date
 func insertAttackers(ctx context.Context, p DBPool, killmailID int, attackers []esi.KillmailAttacker) error {
 	// TODO: this was created before copyAny. Let's update to use that to get a little better performance and use fewer transactions.
 	query := `
-	INSERT INTO killmail.attacker(esi_killmail_id, esi_character_id, esi_corporation_id, esi_alliance_id, esi_faction_id, damage_done, final_blow, security_status, ship_type_id, weapon_type_id)
+	INSERT INTO killmail.attacker(killmail_id, character_id, corporation_id, alliance_id, faction_id, damage_done, final_blow, security_status, ship_type_id, weapon_type_id)
 	VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10);
 	`
 	for _, a := range attackers {
@@ -267,7 +267,7 @@ func insertVictim(ctx context.Context, p DBPool, killmailID int, v esi.KillmailV
 	// TODO: this was also created before copyAny. This will always only be a single row, but is there
 	// a way to optimize by using copyAny from the caller?
 	query := `
-	INSERT INTO killmail.victim(esi_killmail_id, esi_character_id, esi_corporation_id, esi_alliance_id, esi_faction_id, ship_type_id, damage_taken, position_x, position_y, position_z)
+	INSERT INTO killmail.victim(killmail_id, character_id, corporation_id, alliance_id, faction_id, ship_type_id, damage_taken, position_x, position_y, position_z)
 	VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10);
 	`
 	tag, err := p.Exec(ctx, query, killmailID, v.CharacterID, v.CorporationID, v.AllianceID, v.FactionID, v.ShipTypeID, v.DamageTaken, v.Position.X, v.Position.Y, v.Position.Z)
@@ -294,14 +294,14 @@ func upsertEntities(ctx context.Context, p DBPool, entities []int, entityType st
 		return nil
 	}
 
-	query := fmt.Sprintf("INSERT INTO player.%s(esi_%s_id) VALUES ", entityType, entityType)
+	query := fmt.Sprintf("INSERT INTO player.%s(%s_id) VALUES ", entityType, entityType)
 
 	var placeholders []string
 	for i := range entities {
 		placeholders = append(placeholders, fmt.Sprintf("($%d)", i+1))
 	}
 
-	query += strings.Join(placeholders, ", ") + " ON CONFLICT (esi_" + entityType + "_id) DO NOTHING;"
+	query += strings.Join(placeholders, ", ") + " ON CONFLICT (" + entityType + "_id) DO NOTHING;"
 
 	if _, err := p.Exec(ctx, query, toAnySlice(entities)...); err != nil {
 		return fmt.Errorf("execution error: %w", err)
@@ -346,9 +346,9 @@ func upsertParticipants(ctx context.Context, p DBPool, participants []esi.KillMa
 // upsertKillmail upserts a killmail into the database. On conflict of KillmailID, MoonID and WarID are updated.
 func upsertKillmail(ctx context.Context, p DBPool, k esi.Killmail) error {
 	query := `
-	INSERT INTO killmail.esi_killmail(esi_killmail_id, time, moon_id, solar_system_id, war_id)
+	INSERT INTO killmail.killmail(killmail_id, time, moon_id, solar_system_id, war_id)
 	VALUES ($1, $2, $3, $4, $5)
-	ON CONFLICT (esi_killmail_id) DO UPDATE SET moon_id = EXCLUDED.moon_id, war_id = EXCLUDED.war_id;
+	ON CONFLICT (killmail_id) DO UPDATE SET moon_id = EXCLUDED.moon_id, war_id = EXCLUDED.war_id;
 	`
 	tag, err := p.Exec(ctx, query, k.KillmailID, k.KillmailTime, k.MoonID, k.SolarSystemID, k.WarID)
 	if err != nil {
@@ -366,9 +366,9 @@ func upsertKillmail(ctx context.Context, p DBPool, k esi.Killmail) error {
 // all fields are updated.
 func upsertZkillInfo(ctx context.Context, p DBPool, killmailID int, z zkill.ZKKillInfo) error {
 	query := `
-	INSERT INTO killmail.zkill_info(esi_killmail_id, awox, destroyed_value, dropped_value, fitted_value, hash, location_id, npc, points, solo, total_value)
+	INSERT INTO killmail.zkill_info(killmail_id, awox, destroyed_value, dropped_value, fitted_value, hash, location_id, npc, points, solo, total_value)
 	VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
-	ON CONFLICT (esi_killmail_id) DO UPDATE SET awox = EXCLUDED.awox, destroyed_value = EXCLUDED.destroyed_value, dropped_value = EXCLUDED.dropped_value, fitted_value = EXCLUDED.fitted_value, hash = EXCLUDED.hash, location_id = EXCLUDED.location_id, npc = EXCLUDED.npc, points = EXCLUDED.points, solo = EXCLUDED.solo, total_value = EXCLUDED.total_value;
+	ON CONFLICT (killmail_id) DO UPDATE SET awox = EXCLUDED.awox, destroyed_value = EXCLUDED.destroyed_value, dropped_value = EXCLUDED.dropped_value, fitted_value = EXCLUDED.fitted_value, hash = EXCLUDED.hash, location_id = EXCLUDED.location_id, npc = EXCLUDED.npc, points = EXCLUDED.points, solo = EXCLUDED.solo, total_value = EXCLUDED.total_value;
 	`
 
 	tag, err := p.Exec(
@@ -444,7 +444,7 @@ func (c *Client) CopyZkillKillmails(ctx context.Context, date string, z []zkill.
 		anyZKills = append(anyZKills, []any{p.ESIKill.KillmailID, p.ZKKill.Awox, p.ZKKill.DestroyedValue, p.ZKKill.DroppedValue, p.ZKKill.FittedValue, p.ZKKill.Hash, p.ZKKill.LocationID, p.ZKKill.NPC, p.ZKKill.Points, p.ZKKill.Solo, p.ZKKill.TotalValue})
 	}
 
-	cols := []string{"esi_killmail_id", "awox", "destroyed_value", "dropped_value", "fitted_value", "hash", "location_id", "npc", "points", "solo", "total_value"}
+	cols := []string{"killmail_id", "awox", "destroyed_value", "dropped_value", "fitted_value", "hash", "location_id", "npc", "points", "solo", "total_value"}
 
 	if err := pgx.BeginFunc(ctx, c.pool, func(tx pgx.Tx) error {
 		return copyAny(ctx, tx, "killmail", "zkill_info", date, cols, anyZKills)

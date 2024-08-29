@@ -22,8 +22,8 @@ export async function getCorporation(id: number): Promise<Corporation | null> {
           creator_id,
           date_founded,
           description,
-          esi_alliance_id,
-          esi_corporation_id,
+          alliance_id,
+          corporation_id,
           faction_id,
           home_station_id,
           member_count,
@@ -36,7 +36,7 @@ export async function getCorporation(id: number): Promise<Corporation | null> {
         FROM
           player.corporation
         WHERE
-          esi_corporation_id = ${id}
+          corporation_id = ${id}
         LIMIT 1
       `;
 

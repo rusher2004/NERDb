@@ -28,7 +28,7 @@ export async function getAlliance(id: number): Promise<Alliance | null> {
         FROM
           player.alliance
         WHERE
-          esi_alliance_id = ${id}
+          alliance_id = ${id}
         LIMIT 1
       `;
 

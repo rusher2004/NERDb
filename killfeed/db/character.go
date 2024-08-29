@@ -17,12 +17,12 @@ const (
 )
 
 type Character struct {
-	AllianceID     null.JSONNullInt32  `db:"esi_alliance_id"`
+	AllianceID     null.JSONNullInt32  `db:"alliance_id"`
 	Birthday       time.Time           `db:"birthday"`
 	CreatedAt      time.Time           `db:"created_at"`
 	BloodlineID    int32               `db:"bloodline_id"`
-	CharacterID    int32               `db:"esi_character_id"`
-	CorporationID  int32               `db:"esi_corporation_id"`
+	CharacterID    int32               `db:"character_id"`
+	CorporationID  int32               `db:"corporation_id"`
 	Description    null.JSONNullString `db:"description"`
 	Gender         Gender              `db:"gender"`
 	FactionID      null.JSONNullInt32  `db:"faction_id"`
@@ -37,11 +37,11 @@ type Character struct {
 // table, then inserting into the persistent table.
 func (c *Client) CopyCharacters(ctx context.Context, characters []Character) error {
 	cols := []string{
-		"esi_character_id",
-		"esi_alliance_id",
+		"character_id",
+		"alliance_id",
 		"birthday",
 		"bloodline_id",
-		"esi_corporation_id",
+		"corporation_id",
 		"description",
 		"faction_id",
 		"gender",
@@ -52,11 +52,11 @@ func (c *Client) CopyCharacters(ctx context.Context, characters []Character) err
 	var anyChars [][]any
 
 	setClauses := []string{
-		"esi_character_id",
-		"esi_alliance_id = EXCLUDED.esi_alliance_id",
+		"character_id",
+		"alliance_id = EXCLUDED.alliance_id",
 		"birthday = EXCLUDED.birthday",
 		"bloodline_id = EXCLUDED.bloodline_id",
-		"esi_corporation_id = EXCLUDED.esi_corporation_id",
+		"corporation_id = EXCLUDED.corporation_id",
 		"description = EXCLUDED.description",
 		"faction_id = EXCLUDED.faction_id",
 		"gender = EXCLUDED.gender",
@@ -91,12 +91,12 @@ func (c *Client) CopyCharacters(ctx context.Context, characters []Character) err
 }
 
 func (c *Client) CopyDeletedCharacters(ctx context.Context, charIDs []int32) error {
-	cols := []string{"esi_character_id"}
+	cols := []string{"character_id"}
 	var anyChars [][]any
 
 	setClauses := []string{
-		"esi_character_id",
-		"esi_deleted = true",
+		"character_id",
+		"deleted = true",
 	}
 
 	for _, id := range charIDs {
@@ -112,12 +112,12 @@ func (c *Client) CopyDeletedCharacters(ctx context.Context, charIDs []int32) err
 	return nil
 }
 
-// GetUnnamedCharacterIDs returns a list of character IDs where name and esi_deleted are null
+// GetUnnamedCharacterIDs returns a list of character IDs where name and deleted are null
 func (c *Client) GetUnnamedCharacterIDs(ctx context.Context, count int) ([]int32, error) {
 	query := `
-		SELECT esi_character_id
+		SELECT character_id
 		FROM player.character
-		WHERE (name IS NULL OR LOWER(name) = 'unknown') AND esi_deleted IS NOT TRUE
+		WHERE (name IS NULL OR LOWER(name) = 'unknown') AND deleted IS NOT TRUE
 		LIMIT $1;
 	`
 
@@ -139,13 +139,13 @@ func (c *Client) GetUnnamedCharacterIDs(ctx context.Context, count int) ([]int32
 	return charIDs, nil
 }
 
-// SetCharacterDeleted sets the esi_deleted flag to true for a character. This is the case when ESI
+// SetCharacterDeleted sets the deleted flag to true for a character. This is the case when ESI
 // has returned a message that the character has been deleted.
 func (c *Client) SetCharacterDeleted(ctx context.Context, charID int32) error {
 	query := `
 		UPDATE player.character
-		SET esi_deleted = true
-		WHERE esi_character_id = $1;
+		SET deleted = true
+		WHERE character_id = $1;
 	`
 
 	if _, err := c.pool.Exec(ctx, query, charID); err != nil {
@@ -163,8 +163,8 @@ func (c *Client) UpdateCharacter(ctx context.Context, char Character) error {
 		SET
 			birthday = $1,
 			bloodline_id = $2,
-			esi_alliance_id = $3,
-			esi_corporation_id = $4,
+			alliance_id = $3,
+			corporation_id = $4,
 			description = $5,
 			faction_id = $6,
 			gender = $7,
@@ -172,7 +172,7 @@ func (c *Client) UpdateCharacter(ctx context.Context, char Character) error {
 			race_id = $9,
 			security_status = $10,
 			title = $11
-		WHERE esi_character_id = $12;
+		WHERE character_id = $12;
 	`
 
 	if _, err := c.pool.Exec(ctx, query,

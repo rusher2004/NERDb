@@ -51,7 +51,7 @@ func (c *Client) Close() {
 func (c *Client) FetchTotals(ctx context.Context) (map[string]int, error) {
 	query := `
 		SELECT to_char(date_trunc('day', time), 'YYYYMMDD') as day, count(*) as total
-		FROM killmail.esi_killmail
+		FROM killmail.killmail
 		GROUP BY day;
 	`
 

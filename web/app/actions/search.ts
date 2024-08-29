@@ -40,9 +40,9 @@ export async function searchAll(
     WITH matched_chars AS (
       SELECT
         name,
-        esi_character_id AS id,
-        esi_corporation_id,
-        esi_alliance_id,
+        character_id AS id,
+        corporation_id,
+        alliance_id,
         'character' AS type,
         ts_rank(to_tsvector('simple',
             name),
@@ -60,9 +60,9 @@ export async function searchAll(
     matched_corps AS (
       SELECT
         name,
-        esi_corporation_id AS id,
-        esi_corporation_id,
-        esi_alliance_id,
+        corporation_id AS id,
+        corporation_id,
+        alliance_id,
         'corporation' AS type,
         ts_rank(to_tsvector('simple',
             name),
@@ -80,9 +80,9 @@ export async function searchAll(
     matched_allis AS (
       SELECT
         name,
-        esi_alliance_id AS id,
-        -1 as esi_corporation_id,
-        esi_alliance_id,
+        alliance_id AS id,
+        -1 as corporation_id,
+        alliance_id,
         'alliance' AS type,
         ts_rank(to_tsvector('simple',
             name),
@@ -97,15 +97,15 @@ export async function searchAll(
         name
       LIMIT 15
     )
-    SELECT name, id, esi_corporation_id, esi_alliance_id, rank, type
+    SELECT name, id, corporation_id, alliance_id, rank, type
     FROM
       matched_chars
     UNION
-    SELECT name, id, esi_corporation_id, esi_alliance_id, rank, type
+    SELECT name, id, corporation_id, alliance_id, rank, type
     FROM
       matched_corps
     UNION
-    SELECT name, id, esi_corporation_id, esi_alliance_id, rank, type
+    SELECT name, id, corporation_id, alliance_id, rank, type
     FROM
       matched_allis
     ORDER BY

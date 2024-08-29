@@ -20,9 +20,9 @@ export async function getCharacter(id: number): Promise<Character | null> {
           SELECT
             birthday,
             bloodline_id,
-            esi_alliance_id,
-            esi_character_id,
-            esi_corporation_id,
+            alliance_id,
+            character_id,
+            corporation_id,
             description,
             faction_id,
             gender,
@@ -33,7 +33,7 @@ export async function getCharacter(id: number): Promise<Character | null> {
           FROM
             player.character
           WHERE
-            esi_character_id = ${id}
+            character_id = ${id}
           LIMIT 1
         `;
 

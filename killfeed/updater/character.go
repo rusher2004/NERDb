@@ -126,7 +126,7 @@ func (u *Updater) updateCharacter(ctx context.Context, charID int32) error {
 }
 
 // UpdateCharacters updates count number of characters in the database whose row contains null
-// values for name and esi_deleted. For each row, a call to the ESI API is made for the data,
+// values for name and deleted. For each row, a call to the ESI API is made for the data,
 // pausing as needed, based on ESI's limit values.
 func (u *Updater) UpdateCharacters(ctx context.Context, count int) error {
 	charIDs, err := u.db.GetUnnamedCharacterIDs(ctx, count)

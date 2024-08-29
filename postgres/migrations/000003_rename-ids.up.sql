@@ -1,8 +1,8 @@
 ALTER TABLE player.character
-  RENAME COLUMN alliance_id TO esi_alliance_id;
+  RENAME COLUMN alliance_id TO alliance_id;
 
 ALTER TABLE player.character
-  RENAME corporation_id TO esi_corporation_id;
+  RENAME corporation_id TO corporation_id;
 
 ALTER TABLE player.corporation
-  RENAME COLUMN alliance_id TO esi_alliance_id;
+  RENAME COLUMN alliance_id TO alliance_id;

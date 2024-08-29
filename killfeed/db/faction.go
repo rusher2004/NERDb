@@ -12,7 +12,7 @@ import (
 type Faction struct {
 	CorporationID      null.JSONNullInt32 `db:"corporation_id"`
 	Description        string             `db:"description"`
-	FactionID          int32              `db:"esi_faction_id"`
+	FactionID          int32              `db:"faction_id"`
 	IsUnique           bool               `db:"is_unique"`
 	MilitiaCorpID      null.JSONNullInt32 `db:"militia_corporation_id"`
 	Name               string             `db:"name"`
@@ -26,7 +26,7 @@ func (c *Client) CopyFactions(ctx context.Context, factions []Faction) error {
 	cols := []string{
 		"corporation_id",
 		"description",
-		"esi_faction_id",
+		"faction_id",
 		"is_unique",
 		"militia_corporation_id",
 		"name",
@@ -39,7 +39,7 @@ func (c *Client) CopyFactions(ctx context.Context, factions []Faction) error {
 	var anyFactions [][]any
 
 	setClauses := []string{
-		"esi_faction_id",
+		"faction_id",
 		"corporation_id = EXCLUDED.corporation_id",
 		"description = EXCLUDED.description",
 		"is_unique = EXCLUDED.is_unique",

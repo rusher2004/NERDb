@@ -15,7 +15,7 @@ $$ LANGUAGE PLPGSQL;
 CREATE SCHEMA IF NOT EXISTS universe;
 
 CREATE TABLE IF NOT EXISTS universe.faction (
-  esi_faction_id integer NOT NULL PRIMARY KEY,
+  faction_id integer NOT NULL PRIMARY KEY,
   corporation_id INTEGER,
   description TEXT NOT NULL,
   is_unique BOOLEAN NOT NULL,
@@ -37,13 +37,13 @@ CREATE SCHEMA IF NOT EXISTS player;
 CREATE TYPE player.gender AS ENUM ('female', 'male', '');
 
 CREATE TABLE IF NOT EXISTS player.character (
-  esi_character_id integer NOT NULL PRIMARY KEY,
-  esi_alliance_id INTEGER,
+  character_id integer NOT NULL PRIMARY KEY,
+  alliance_id INTEGER,
   birthday TIMESTAMPTZ,
   bloodline_id INTEGER,
   corporation_id INTEGER,
   description TEXT,
-  esi_deleted boolean,
+  deleted boolean,
   faction_id INTEGER,
   gender player.gender,
   name TEXT,
@@ -58,8 +58,8 @@ CREATE OR REPLACE TRIGGER player_character_updated_trigger BEFORE
 UPDATE ON player.character FOR EACH ROW EXECUTE FUNCTION updated_timestamp();
 
 CREATE TABLE IF NOT EXISTS player.corporation (
-  esi_corporation_id integer NOT NULL PRIMARY KEY,
-  esi_alliance_id INTEGER,
+  corporation_id integer NOT NULL PRIMARY KEY,
+  alliance_id INTEGER,
   ceo_id INTEGER,
   creator_id INTEGER,
   date_founded TIMESTAMPTZ,
@@ -81,7 +81,7 @@ CREATE OR REPLACE TRIGGER player_corporation_updated_trigger BEFORE
 UPDATE ON player.corporation FOR EACH ROW EXECUTE FUNCTION updated_timestamp();
 
 CREATE TABLE IF NOT EXISTS player.alliance (
-  esi_alliance_id integer NOT NULL PRIMARY KEY,
+  alliance_id integer NOT NULL PRIMARY KEY,
   creator_corporation_id INTEGER,
   creator_id INTEGER,
   date_founded TIMESTAMPTZ,
@@ -100,28 +100,28 @@ UPDATE ON player.alliance FOR EACH ROW EXECUTE FUNCTION updated_timestamp();
 /*
  foreign keys
  */
+-- we can only guarantee that the faction is in the database
+ALTER TABLE player.character ADD CONSTRAINT character_faction_fk FOREIGN KEY (faction_id) REFERENCES universe.faction(faction_id);
+-- ALTER TABLE player.character ADD CONSTRAINT character_alliance_fk FOREIGN KEY (alliance_id) REFERENCES player.alliance(alliance_id);
+-- ALTER TABLE player.character ADD CONSTRAINT character_corporation_fk FOREIGN KEY (corporation_id) REFERENCES player.corporation(corporation_id);
 
-ALTER TABLE player.character ADD CONSTRAINT character_alliance_fk FOREIGN KEY (alliance_id) REFERENCES player.alliance(esi_alliance_id);
-ALTER TABLE player.character ADD CONSTRAINT character_corporation_fk FOREIGN KEY (corporation_id) REFERENCES player.corporation(esi_corporation_id);
-ALTER TABLE player.character ADD CONSTRAINT character_faction_fk FOREIGN KEY (faction_id) REFERENCES universe.faction(esi_faction_id);
+ALTER TABLE player.corporation ADD CONSTRAINT corporation_faction_fk FOREIGN KEY (faction_id) REFERENCES universe.faction(faction_id);
+-- ALTER TABLE player.corporation ADD CONSTRAINT corporation_alliance_fk FOREIGN KEY (alliance_id) REFERENCES player.alliance(alliance_id);
+-- ALTER TABLE player.corporation ADD CONSTRAINT corporation_ceo_fk FOREIGN KEY (ceo_id) REFERENCES player.character(character_id);
+-- ALTER TABLE player.corporation ADD CONSTRAINT corporation_creator_fk FOREIGN KEY (creator_id) REFERENCES player.character(character_id);
 
-ALTER TABLE player.corporation ADD CONSTRAINT corporation_alliance_fk FOREIGN KEY (alliance_id) REFERENCES player.alliance(esi_alliance_id);
-ALTER TABLE player.corporation ADD CONSTRAINT corporation_ceo_fk FOREIGN KEY (ceo_id) REFERENCES player.character(esi_character_id);
-ALTER TABLE player.corporation ADD CONSTRAINT corporation_creator_fk FOREIGN KEY (creator_id) REFERENCES player.character(esi_character_id);
-ALTER TABLE player.corporation ADD CONSTRAINT corporation_faction_fk FOREIGN KEY (faction_id) REFERENCES universe.faction(esi_faction_id);
-
-ALTER TABLE player.alliance ADD CONSTRAINT alliance_creator_corporation_fk FOREIGN KEY (creator_corporation_id) REFERENCES player.corporation(esi_corporation_id);
-ALTER TABLE player.alliance ADD CONSTRAINT alliance_creator_fk FOREIGN KEY (creator_id) REFERENCES player.character(esi_character_id);
-ALTER TABLE player.alliance ADD CONSTRAINT alliance_executor_corporation_fk FOREIGN KEY (executor_corporation_id) REFERENCES player.corporation(esi_corporation_id);
-ALTER TABLE player.alliance ADD CONSTRAINT alliance_faction_fk FOREIGN KEY (faction_id) REFERENCES universe.faction(esi_faction_id);
+ALTER TABLE player.alliance ADD CONSTRAINT alliance_faction_fk FOREIGN KEY (faction_id) REFERENCES universe.faction(faction_id);
+-- ALTER TABLE player.alliance ADD CONSTRAINT alliance_creator_corporation_fk FOREIGN KEY (creator_corporation_id) REFERENCES player.corporation(corporation_id);
+-- ALTER TABLE player.alliance ADD CONSTRAINT alliance_creator_fk FOREIGN KEY (creator_id) REFERENCES player.character(character_id);
+-- ALTER TABLE player.alliance ADD CONSTRAINT alliance_executor_corporation_fk FOREIGN KEY (executor_corporation_id) REFERENCES player.corporation(corporation_id);
 
 /*
  killmail schema
  */
 CREATE SCHEMA IF NOT EXISTS killmail;
 
-CREATE TABLE IF NOT EXISTS killmail.esi_killmail (
-  esi_killmail_id integer NOT NULL,
+CREATE TABLE IF NOT EXISTS killmail.killmail (
+  killmail_id integer NOT NULL,
   time TIMESTAMPTZ NOT NULL,
   moon_id integer,
   solar_system_id integer NOT NULL,
@@ -130,10 +130,10 @@ CREATE TABLE IF NOT EXISTS killmail.esi_killmail (
   updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
 
   -- victim info
-  esi_character_id integer,
-  esi_alliance_id integer,
-  esi_corporation_id integer,
-  esi_faction_id integer,
+  character_id integer,
+  alliance_id integer,
+  corporation_id integer,
+  faction_id integer,
   damage_taken integer,
   position_x double precision,
   position_y double precision,
@@ -141,23 +141,27 @@ CREATE TABLE IF NOT EXISTS killmail.esi_killmail (
   ship_type_id integer
 );
 
-SELECT create_hypertable('killmail.esi_killmail', by_range('time'));
+SELECT create_hypertable('killmail.killmail', by_range('time'));
 
 /*
  Timescale Indexes
  */
-CREATE INDEX killmail_esi_killmail_id_time_idx ON killmail.esi_killmail (esi_killmail_id, time DESC);
-CREATE INDEX killmail_esi_alliance_id_time_idx ON killmail.esi_killmail (esi_alliance_id, time DESC);
-CREATE INDEX killmail_esi_character_id_time_idx ON killmail.esi_killmail (esi_character_id, time DESC);
-CREATE INDEX killmail_esi_corporation_id_time_idx ON killmail.esi_killmail (esi_corporation_id, time DESC);
-CREATE INDEX killmail_esi_faction_id_time_idx ON killmail.esi_killmail (esi_faction_id, time DESC);
+CREATE INDEX killmail_killmail_id_time_idx ON killmail.killmail (killmail_id, time DESC);
+CREATE INDEX killmail_alliance_id_time_idx ON killmail.killmail (alliance_id, time DESC)
+  WHERE alliance_id IS NOT NULL;
+CREATE INDEX killmail_character_id_time_idx ON killmail.killmail (character_id, time DESC)
+  WHERE character_id IS NOT NULL;
+CREATE INDEX killmail_corporation_id_time_idx ON killmail.killmail (corporation_id, time DESC)
+  WHERE corporation_id IS NOT NULL;
+CREATE INDEX killmail_faction_id_time_idx ON killmail.killmail (faction_id, time DESC)
+  WHERE faction_id IS NOT NULL;
 
-CREATE OR REPLACE TRIGGER killmail_esi_killmail_updated_trigger BEFORE
-UPDATE ON killmail.esi_killmail FOR EACH ROW EXECUTE FUNCTION updated_timestamp();
+CREATE OR REPLACE TRIGGER killmail_killmail_updated_trigger BEFORE
+UPDATE ON killmail.killmail FOR EACH ROW EXECUTE FUNCTION updated_timestamp();
 
 CREATE TABLE IF NOT EXISTS killmail.zkill_info (
   zkill_info_id serial PRIMARY KEY,
-  esi_killmail_id integer NOT NULL,
+  killmail_id integer NOT NULL,
   awox boolean NOT NULL,
   destroyed_value numeric(17, 2) NOT NULL,
   dropped_value numeric(17, 2) NOT NULL,
@@ -172,18 +176,18 @@ CREATE TABLE IF NOT EXISTS killmail.zkill_info (
   updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE INDEX zkill_info_esi_killmail_id_idx ON killmail.zkill_info (esi_killmail_id);
+CREATE INDEX zkill_info_killmail_id_idx ON killmail.zkill_info (killmail_id);
 
 CREATE OR REPLACE TRIGGER killmail_zkill_info_updated_trigger BEFORE
 UPDATE ON killmail.zkill_info FOR EACH ROW EXECUTE FUNCTION updated_timestamp();
 
 CREATE TABLE IF NOT EXISTS killmail.attacker (
-  esi_character_id integer,
-  esi_killmail_id integer NOT NULL,
+  character_id integer,
+  killmail_id integer NOT NULL,
   damage_done integer NOT NULL,
-  esi_alliance_id integer,
-  esi_corporation_id integer,
-  esi_faction_id integer,
+  alliance_id integer,
+  corporation_id integer,
+  faction_id integer,
   final_blow boolean NOT NULL,
   security_status double precision,
   ship_type_id integer,
@@ -192,11 +196,11 @@ CREATE TABLE IF NOT EXISTS killmail.attacker (
   updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE INDEX attacker_esi_killmail_id_idx ON killmail.attacker (esi_killmail_id);
-CREATE INDEX attacker_esi_alliance_id_idx ON killmail.attacker (esi_alliance_id);
-CREATE INDEX attacker_esi_character_id_idx ON killmail.attacker (esi_character_id);
-CREATE INDEX attacker_esi_corporation_id_idx ON killmail.attacker (esi_corporation_id);
-CREATE INDEX attacker_esi_faction_id_idx ON killmail.attacker (esi_faction_id);
+CREATE INDEX attacker_killmail_id_idx ON killmail.attacker (killmail_id);
+CREATE INDEX attacker_alliance_id_idx ON killmail.attacker (alliance_id);
+CREATE INDEX attacker_character_id_idx ON killmail.attacker (character_id);
+CREATE INDEX attacker_corporation_id_idx ON killmail.attacker (corporation_id);
+CREATE INDEX attacker_faction_id_idx ON killmail.attacker (faction_id);
 
 CREATE OR REPLACE TRIGGER killmail_attacker_updated_trigger BEFORE
 UPDATE ON killmail.attacker FOR EACH ROW EXECUTE FUNCTION updated_timestamp();

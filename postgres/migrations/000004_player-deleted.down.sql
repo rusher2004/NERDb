@@ -1,1 +1,1 @@
-ALTER TABLE player.character DROP COLUMN esi_deleted;
+ALTER TABLE player.character DROP COLUMN deleted;
