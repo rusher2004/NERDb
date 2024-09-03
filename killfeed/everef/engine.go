@@ -19,17 +19,24 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
+type DataStore interface {
+	CopyCharacters(ctx context.Context, characters []db.Character) error
+	CopyCorporations(ctx context.Context, corps []db.Corporation) error
+	CopyESIKillmails(ctx context.Context, date string, kms []esi.Killmail) error
+	FetchTotals(ctx context.Context) (map[string]int, error)
+}
+
 type HTTPClient interface {
 	Do(*http.Request) (*http.Response, error)
 }
 
 type Engine struct {
-	db db.Client
+	ds DataStore
 	hc HTTPClient
 }
 
-func NewEngine(hc HTTPClient, cl db.Client) *Engine {
-	return &Engine{cl, hc}
+func NewEngine(hc HTTPClient, ds DataStore) *Engine {
+	return &Engine{ds, hc}
 }
 
 // openFile attempts to open a file at fp, checking specifically for a file not found error.
@@ -120,7 +127,7 @@ func (e *Engine) ProcessDayKillmails(ctx context.Context, day string) error {
 
 	log.Println("extracted kms count:", len(kms))
 
-	if err := e.db.CopyESIKillmails(ctx, day, kms); err != nil {
+	if err := e.ds.CopyESIKillmails(ctx, day, kms); err != nil {
 		return fmt.Errorf("error copying killmails: %w", err)
 	}
 
@@ -155,7 +162,7 @@ func (e *Engine) RunCharacterUpdater(ctx context.Context, dir string, batchSize 
 		chars = append(chars, c.toDBCharacter())
 
 		if (len(chars) == batchSize || !scanner.Scan()) && len(chars) > 0 {
-			if err := e.db.CopyCharacters(ctx, chars); err != nil {
+			if err := e.ds.CopyCharacters(ctx, chars); err != nil {
 				return fmt.Errorf("error copying characters: %w", err)
 			}
 
@@ -193,7 +200,7 @@ func (e *Engine) RunCorporationUpdater(ctx context.Context, dir string) error {
 	}
 	log.Printf("read %d corporations", len(corps))
 
-	if err := e.db.CopyCorporations(ctx, corps); err != nil {
+	if err := e.ds.CopyCorporations(ctx, corps); err != nil {
 		return fmt.Errorf("error copying corporations: %w", err)
 	}
 
@@ -221,7 +228,7 @@ func (e *Engine) RunKillmails(ctx context.Context, hc HTTPClient) error {
 	})
 
 	g.Go(func() error {
-		t, err := e.db.FetchTotals(ctx)
+		t, err := e.ds.FetchTotals(ctx)
 		if err != nil {
 			return fmt.Errorf("db error: %w", err)
 		}

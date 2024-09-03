@@ -9,6 +9,7 @@ require (
 	github.com/joho/godotenv v1.5.1
 	github.com/lib/pq v1.10.9
 	github.com/mholt/archiver/v4 v4.0.0-alpha.8
+	github.com/neo4j/neo4j-go-driver/v5 v5.24.0
 	github.com/urfave/cli/v2 v2.27.3
 	golang.ngrok.com/ngrok v1.10.0
 	golang.org/x/sync v0.8.0

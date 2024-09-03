@@ -1,7 +1,12 @@
 name: "nerdb"
 
 include:
-  - path: postgres/docker-compose.yml
+  # - path: postgres/docker-compose.yml
+  - path: neo4j/docker-compose.yml
 
 volumes:
   pgdata:
+  neo4j-data:
+  neo4j-logs:
+  neo4j-import:
+  neo4j-plugins:

@@ -15,6 +15,7 @@ import (
 	_ "github.com/joho/godotenv/autoload"
 	"github.com/rusher2004/nerdb/killfeed/db"
 	"github.com/rusher2004/nerdb/killfeed/everef"
+	"github.com/rusher2004/nerdb/killfeed/graph"
 	"github.com/rusher2004/nerdb/killfeed/listener"
 	"github.com/rusher2004/nerdb/killfeed/updater"
 	"golang.org/x/sync/errgroup"
@@ -65,18 +66,38 @@ func main() {
 		log.Fatalf("error creating db connection: %v", err)
 	}
 
+	gURI, ok := os.LookupEnv("NEO4J_URI")
+	if !ok {
+		log.Fatal("NEO4J_URI is not set")
+	}
+	gUser, ok := os.LookupEnv("NEO4J_USER")
+	if !ok {
+		log.Fatal("NEO4J_USER is not set")
+	}
+	gPass, ok := os.LookupEnv("NEO4J_PASSWORD")
+	if !ok {
+		log.Fatal("NEO4J_PASS is not set")
+	}
+
+	gc, err := graph.NewClient(gURI, gUser, gPass)
+	if err != nil {
+		log.Fatalf("error creating graph client: %v", err)
+	}
+
+	defer gc.Close(ctx)
+
 	done := make(chan os.Signal, 1)
 
 	if lstnrEnable {
 		log.Println("running listener")
-		lstnr := listener.NewListener(&cl, *pool)
+		lstnr := listener.NewListener(&cl, gc)
 		go lstnr.Listen(ctx, 100)
 	}
 
 	if erEnable {
 		log.Println("running engine")
 		g := new(errgroup.Group)
-		eng := everef.NewEngine(&cl, *pool)
+		eng := everef.NewEngine(&cl, gc)
 
 		g.Go(func() error {
 			return eng.RunKillmails(ctx, &cl)
@@ -94,7 +115,7 @@ func main() {
 		log.Println("running updater")
 
 		g := new(errgroup.Group)
-		eng := everef.NewEngine(&cl, *pool)
+		eng := everef.NewEngine(&cl, pool)
 
 		g.Go(func() error {
 			switch *updaterSrc {

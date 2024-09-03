@@ -13,17 +13,21 @@ import (
 	"github.com/rusher2004/nerdb/killfeed/zkill"
 )
 
+type Datastore interface {
+	CopyZkillKillmails(ctx context.Context, date string, kms []zkill.RedisQPackage) error
+}
+
 type HTTPClient interface {
 	Do(*http.Request) (*http.Response, error)
 }
 
 type Listener struct {
 	hc HTTPClient
-	db db.Client
+	ds Datastore
 }
 
-func NewListener(hc HTTPClient, db db.Client) *Listener {
-	return &Listener{hc, db}
+func NewListener(hc HTTPClient, ds Datastore) *Listener {
+	return &Listener{hc, ds}
 }
 
 // Listen uses Zklilboard's RedisQ to listen for new killmails and dispatches them to the database.
@@ -54,7 +58,7 @@ func (l Listener) Listen(ctx context.Context, batchSize int) {
 				log.Printf("copying %d killmails", batchSize)
 				now := time.Now()
 
-				if err := l.db.CopyZkillKillmails(ctx, now.Format("20060102030405"), packages); err != nil {
+				if err := l.ds.CopyZkillKillmails(ctx, now.Format("20060102030405"), packages); err != nil {
 					log.Printf("error copying killmails: %v", err)
 				}
 
