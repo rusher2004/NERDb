@@ -1,7 +1,9 @@
 name: "nerdb"
 
 include:
-  - path: postgres/docker-compose.yml
+  # - path: postgres/docker-compose.yml
+  - path: mongo/docker-compose.yml
 
 volumes:
   pgdata:
+  mongodata:
